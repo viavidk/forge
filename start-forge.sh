@@ -4,9 +4,11 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# Paths
+# Paths — løs symlinks så forge update virker fra ~/.local/bin/forge
 # ---------------------------------------------------------------------------
-FORGE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_self=$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || realpath "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")
+FORGE_ROOT="$(cd "$(dirname "$_self")" && pwd)"
+unset _self
 export FORGE_ROOT
 
 # ---------------------------------------------------------------------------
