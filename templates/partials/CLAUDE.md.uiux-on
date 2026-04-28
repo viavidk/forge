@@ -1,0 +1,17 @@
+
+## UI/UX Design Intelligence
+
+@.claude/skills/ui-ux-pro-max/SKILL.md
+
+Dette projekt bruger ui-ux-pro-max som ENESTE autoritet for UI/UX-beslutninger.
+Der er bevidst ingen DESIGN.md — ui-ux-pro-max har sit eget komplette design-system
+(67 styles, 96 paletter, 57 font-par) og at have to konkurrerende autoriteter
+skaber rodede UI-resultater.
+
+**Brug skill'en til alle UI/UX-opgaver:**
+- Den aktiverer automatisk når du designer, bygger eller reviewer interface-komponenter
+- Eksplicit søgning:
+
+  python3 .claude/skills/ui-ux-pro-max/scripts/search.py "dark saas dashboard" --design-system --stack html-tailwind
+
+- Forsøg IKKE at oprette eller referere til en DESIGN.md — det er med vilje ikke del af dette projekt.

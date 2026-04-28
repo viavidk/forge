@@ -1,0 +1,4 @@
+# Tilføj og pin versioner efterhånden som de bruges
+# Eksempel:
+# httpx==0.27.0
+# tenacity==8.2.3

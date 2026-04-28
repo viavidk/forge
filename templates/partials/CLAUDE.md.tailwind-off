@@ -1,0 +1,10 @@
+
+## CSS
+
+Tailwind er IKKE aktiveret i dette projekt. Brug vanilla CSS i `public/assets/css/`.
+
+**Regler:**
+- Én CSS-fil per modul: `public/assets/css/dashboard.css`, `public/assets/css/auth.css`
+- Ingen `@tailwind`-direktiver nogen steder — der er ingen build-pipeline
+- Link til CSS-filer i views: `<link rel="stylesheet" href="/assets/css/dashboard.css">`
+- `app/views/partials/tailwind.php` eksisterer som no-op — ignorer den eller slet den

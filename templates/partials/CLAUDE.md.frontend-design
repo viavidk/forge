@@ -1,0 +1,17 @@
+
+### Aesthetic direction — Anthropic frontend-design
+
+@.claude/skills/frontend-design/SKILL.md
+
+Denne skill tvinger dig væk fra generisk "AI slop" aesthetic (Inter overalt,
+lilla gradient, nested cards, Arial fallback). Den aktiveres automatisk når
+du bygger ANY web interface.
+
+**Sådan bruges de to sammen:**
+- **DESIGN.md** = projektets konkrete tokens (farver, fonts, spacing) — sandhedskilden
+- **frontend-design skill** = metodologi (vælg bold aesthetic retning, commit til den,
+  undgå generisk typografi, skab distinkt visuel karakter)
+
+Hvis de to konflikter: DESIGN.md vinder for KONKRETE valg (hex-koder, font-familier).
+frontend-design vinder for STIListiske retningslinjer (layout-intensitet, kontrast-dristighed,
+motion-sprog).

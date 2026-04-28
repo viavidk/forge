@@ -1,0 +1,11 @@
+
+## Tailwind CSS
+
+Tailwind er aktiveret via Play CDN. Al styling bruger Tailwind utility classes.
+
+**Regler:**
+- Alle views skal inkludere `<?php include __DIR__ . "/partials/tailwind.php"; ?>` (eller `dirname(__DIR__)` hvis view ligger i undermappe) i `<head>`
+- Partial'en loader Tailwind Play CDN og injicerer projekt-specifik config med `ds-*` tokens
+- Skab ALDRIG en `app.css` med `@tailwind base/components/utilities` — det kræver en build-pipeline der ikke findes
+- Custom CSS per modul må gerne ligge i `public/assets/css/dashboard.css` osv. — men må ikke indeholde `@tailwind`-direktiver
+- `tailwind.config.js` i projektroden er KUN dokumentation. Runtime-sandheden er `app/views/partials/tailwind.php`
