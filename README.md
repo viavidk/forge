@@ -30,26 +30,12 @@ forge update           # Opdatér til seneste version
 
 ## Hvad Forge genererer
 
-Et nyt projekt får:
+Et nyt projekt får PHP MVC-struktur, SQLite-database, login-system og 8 Claude Code AI-agents der reviewer kode, frontend, database, performance og sikkerhed automatisk.
 
-- **PHP MVC-struktur** — controllers, services, models, views
-- **SQLite** med WAL-mode og prepared statements
-- **Login-system** — bcrypt, CSRF-tokens, session hardening
-- **Claude Code AI-agents** — 8 parallelle reviewers (code, frontend, db, performance, security, data-integrity, browser-tester, mcp-health-check)
-- **Slash commands** — `/project:review`, `/project:db-init`, `/project:deploy`, `/project:health` m.fl.
-- **Rules** — code-style, database, API, javascript, testing, UX
-- **MCP-servere** — ViaVi Skills, Context7, Chrome DevTools (valgfrit)
-- **DESIGN.md** — valgfrit fra [awesome-design-md](https://github.com/VoltAgent/awesome-design-md)
-- **Tailwind CSS** — valgfrit
-- **Aceternity UI + Motion JS** — valgfrit (website/ecommerce-profil)
+## Krav
 
-## Projektkrav
-
-Kræver på udviklingsmaskinen:
-- `bash` 4+, `git`, `curl` (til Forge selv)
-
-Genererede projekter kræver:
-- `php` 8.1+, `composer`, `git`
+- `bash` 4+, `git`, `curl`
+- Genererede projekter kræver: `php` 8.1+, `composer`, `git`
 
 ## ViaVi Skills (valgfrit)
 
