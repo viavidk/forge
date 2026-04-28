@@ -112,10 +112,9 @@ if [ "$FORGE_MODE" != "fast" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Trin 4 — Afhængighedstjek
+# Trin 4 — Afhængighedstjek (basis)
 # ---------------------------------------------------------------------------
 check_basic_dependencies
-[ "$USE_TUNNEL" = "Y" ] && check_cloudflare_dependency
 
 # ---------------------------------------------------------------------------
 # Trin 5 — Prompts (Guided = subset, Avanceret = alle)
@@ -130,7 +129,7 @@ if [ "$FORGE_MODE" = "fast" ]; then
 else
   prompt_port
   prompt_routing
-  [ "$FORGE_MODE" = "advanced" ] && prompt_cloudflare
+  prompt_cloudflare
   [ "$FORGE_MODE" = "advanced" ] && prompt_uiux
   [ "$FORGE_MODE" = "advanced" ] && prompt_tailwind
   # Aceternity: guided + advanced for website-profil, advanced også for andre
@@ -143,6 +142,9 @@ else
     export USE_ACETERNITY
   fi
 fi
+
+# Cloudflare dependency-tjek — nu hvor USE_TUNNEL er sat
+[ "$USE_TUNNEL" = "Y" ] && check_cloudflare_dependency
 
 # ---------------------------------------------------------------------------
 # Trin 6 — DESIGN.md kilde
