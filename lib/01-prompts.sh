@@ -125,18 +125,40 @@ prompt_tailwind() {
 
 prompt_aceternity() {
   # Kun vist for website-profil
-  if [ "$PROJECT_PROFILE" = "website" ]; then
-    local default="${DEFAULT_ACETERNITY:-Y}"
-    printf "  ${BOLD}Inkludér Aceternity UI + Motion JS?${RESET} ${DIM}(animerede komponenter via CDN)${RESET} [$([ "$default" = "Y" ] && echo "Y/n" || echo "y/N")] "
-    read USE_ACETERNITY
-    USE_ACETERNITY="${USE_ACETERNITY:-$default}"
-    if [[ "${USE_ACETERNITY,,}" == "n" ]]; then
-      USE_ACETERNITY="N"
-    else
-      USE_ACETERNITY="Y"
-    fi
-  else
-    USE_ACETERNITY="N"
+  if [ "$PROJECT_PROFILE" != "website" ]; then
+    USE_ACETERNITY="none"
+    export USE_ACETERNITY
+    return
   fi
+
+  local default="${DEFAULT_ACETERNITY:-full}"
+
+  echo ""
+  echo "  ─────────────────────────────────────────"
+  echo "  ${BOLD}Animationer og polish?${RESET}"
+  echo "  ─────────────────────────────────────────"
+  echo ""
+  echo "  ${BOLD}1) Aceternity-mønstre + Motion JS${RESET}   ${DIM}[anbefalet]${RESET}"
+  echo "     Hero-animationer, scroll-effekter,"
+  echo "     gradient-baggrunde — premium-følelse"
+  echo ""
+  echo "  2) Kun Motion JS"
+  echo "     Basale animationer — fade, slide, scroll"
+  echo ""
+  echo "  3) Ingen animationer"
+  echo "     Statisk design — fokus på indhold"
+  echo ""
+  local default_num=1
+  [ "$default" = "motion" ] && default_num=2
+  [ "$default" = "none" ]   && default_num=3
+  printf "  Valg [%s]: " "$default_num"
+  read ACE_CHOICE
+  ACE_CHOICE="${ACE_CHOICE:-$default_num}"
+
+  case "$ACE_CHOICE" in
+    2) USE_ACETERNITY="motion" ;;
+    3) USE_ACETERNITY="none"   ;;
+    *) USE_ACETERNITY="full"   ;;
+  esac
   export USE_ACETERNITY
 }

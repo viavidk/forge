@@ -179,4 +179,12 @@ install_design_md() {
       cp "$FORGE_ROOT/templates/design-md/apple-default.md" "$PROJECT/DESIGN.md"
       ;;
   esac
+
+  # Append Aceternity-mønstre til DESIGN.md når "full" valgt
+  if [ "$USE_ACETERNITY" = "full" ] && [ -f "$PROJECT/DESIGN.md" ]; then
+    start_spinner "Tilføjer Aceternity-mønstre..."
+    echo "" >> "$PROJECT/DESIGN.md"
+    cat "$FORGE_ROOT/templates/partials/aceternity-patterns.md" >> "$PROJECT/DESIGN.md"
+    stop_spinner "aceternity-patterns.md tilføjet til DESIGN.md"
+  fi
 }

@@ -13,9 +13,9 @@ validate_no_conflicts() {
   fi
 
   # Regel 2: backend + Aceternity giver ingen mening
-  if [ "$PROJECT_PROFILE" = "backend" ] && [ "$USE_ACETERNITY" = "Y" ]; then
+  if [ "$PROJECT_PROFILE" = "backend" ] && [ "$USE_ACETERNITY" != "none" ]; then
     echo "  ⚠  Aceternity deaktiveret (ikke relevant for backend-profil)"
-    USE_ACETERNITY="N"
+    USE_ACETERNITY="none"
     export USE_ACETERNITY
   fi
 

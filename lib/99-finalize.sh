@@ -602,6 +602,17 @@ print_summary() {
       echo "Projekt '$(basename "$PROJECT")' oprettet (uden Apache routing)"
     fi
     echo ""
+    echo "  Konfiguration:"
+    echo "    Tailwind:       ${USE_TAILWIND:-N}"
+    echo "    DESIGN.md:      ${DESIGN_SOURCE:-ingen}"
+    echo "    MCP-servere:    $([ "${USE_VIAVI_SKILLS:-N}" = "Y" ] && echo "ViaVi Skills" || true)$([ "${USE_CONTEXT7:-N}" = "Y" ] && echo " Context7" || true)$([ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ] && echo " Chrome" || true)"
+    local ace_label="ingen"
+    case "${USE_ACETERNITY:-none}" in
+      full)   ace_label="Aceternity + Motion JS" ;;
+      motion) ace_label="Motion JS" ;;
+    esac
+    echo "    Animationer:    $ace_label"
+    echo ""
     find "$PROJECT" | grep -v '\.git' | sort
   fi
   echo ""

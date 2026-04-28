@@ -61,7 +61,7 @@ prompt_project_type() {
     website)
       DEFAULT_DESIGN_SOURCE="awesome-design-md"
       DEFAULT_TEMPLATE=$([ "$PROJECT_TYPE" = "ecommerce" ] && echo "stripe" || echo "linear.app")
-      DEFAULT_ACETERNITY="Y"
+      DEFAULT_ACETERNITY="full"
       DEFAULT_TUNNEL="Y"
       DEFAULT_TAILWIND="Y"
       DEFAULT_MCPS="all"
@@ -69,7 +69,7 @@ prompt_project_type() {
     backend)
       DEFAULT_DESIGN_SOURCE="skip"
       DEFAULT_TEMPLATE=""
-      DEFAULT_ACETERNITY="N"
+      DEFAULT_ACETERNITY="none"
       DEFAULT_TUNNEL="N"
       DEFAULT_TAILWIND="N"
       DEFAULT_MCPS="context7-only"
@@ -77,7 +77,7 @@ prompt_project_type() {
     intern|*)
       DEFAULT_DESIGN_SOURCE="viavi-design-system"
       DEFAULT_TEMPLATE=""
-      DEFAULT_ACETERNITY="N"
+      DEFAULT_ACETERNITY="none"
       DEFAULT_TUNNEL="N"
       DEFAULT_TAILWIND="Y"
       DEFAULT_MCPS="all"

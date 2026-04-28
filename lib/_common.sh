@@ -17,7 +17,7 @@ start_spinner() {
   local msg="$1"
   if [ -n "$_spinner_pid" ]; then
     kill "$_spinner_pid" 2>/dev/null
-    wait "$_spinner_pid" 2>/dev/null
+    wait "$_spinner_pid" 2>/dev/null || true
     _spinner_pid=""
   fi
   (
@@ -36,7 +36,7 @@ stop_spinner() {
   local msg="$1"
   if [ -n "$_spinner_pid" ]; then
     kill "$_spinner_pid" 2>/dev/null
-    wait "$_spinner_pid" 2>/dev/null
+    wait "$_spinner_pid" 2>/dev/null || true
     _spinner_pid=""
   fi
   printf "\r  ✓  %s\n" "$msg"
@@ -46,7 +46,7 @@ stop_spinner_err() {
   local msg="$1"
   if [ -n "$_spinner_pid" ]; then
     kill "$_spinner_pid" 2>/dev/null
-    wait "$_spinner_pid" 2>/dev/null
+    wait "$_spinner_pid" 2>/dev/null || true
     _spinner_pid=""
   fi
   printf "\r  ⚠  %s\n" "$msg"
@@ -55,7 +55,7 @@ stop_spinner_err() {
 kill_spinner() {
   if [ -n "$_spinner_pid" ]; then
     kill "$_spinner_pid" 2>/dev/null
-    wait "$_spinner_pid" 2>/dev/null
+    wait "$_spinner_pid" 2>/dev/null || true
     _spinner_pid=""
     printf "\r                                                           \r"
   fi

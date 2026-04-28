@@ -125,14 +125,23 @@ if [ "$FORGE_MODE" = "fast" ]; then
   PORT="${DEFAULT_PORT:-8080}"
   USE_ROUTER="${DEFAULT_ROUTER:-Y}"
   USE_TUNNEL="${DEFAULT_TUNNEL:-N}"
-  export PORT USE_ROUTER USE_TUNNEL
+  USE_ACETERNITY="${DEFAULT_ACETERNITY:-none}"
+  export PORT USE_ROUTER USE_TUNNEL USE_ACETERNITY
 else
   prompt_port
   prompt_routing
   [ "$FORGE_MODE" = "advanced" ] && prompt_cloudflare
   [ "$FORGE_MODE" = "advanced" ] && prompt_uiux
   [ "$FORGE_MODE" = "advanced" ] && prompt_tailwind
-  [ "$FORGE_MODE" = "advanced" ] && [ "$USE_TAILWIND" = "Y" ] && prompt_aceternity
+  # Aceternity: guided + advanced for website-profil, advanced også for andre
+  if [ "$FORGE_MODE" = "guided" ] && [ "$PROJECT_PROFILE" = "website" ]; then
+    prompt_aceternity
+  elif [ "$FORGE_MODE" = "advanced" ] && [ "$USE_TAILWIND" = "Y" ]; then
+    prompt_aceternity
+  else
+    USE_ACETERNITY="${DEFAULT_ACETERNITY:-none}"
+    export USE_ACETERNITY
+  fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -157,6 +166,7 @@ validate_no_conflicts
 scaffold_project_structure
 scaffold_project_files
 install_tailwind
+install_motion_js
 install_design_md
 generate_mcp_config
 generate_claude_md

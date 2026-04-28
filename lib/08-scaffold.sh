@@ -214,6 +214,16 @@ INDEXEOF
   fi
 }
 
+install_motion_js() {
+  [ "$USE_ACETERNITY" = "none" ] && return
+  [ "$USE_ACETERNITY" = "" ]    && return
+
+  start_spinner "Tilføjer Motion JS via CDN..."
+  mkdir -p "$PROJECT/public/assets/partials"
+  cp "$FORGE_ROOT/templates/partials/motion.html" "$PROJECT/public/assets/partials/motion.html"
+  stop_spinner "motion.html partial inkluderet i layout"
+}
+
 scaffold_error_pages() {
   mkdir -p "$PROJECT/app/views/errors"
 
