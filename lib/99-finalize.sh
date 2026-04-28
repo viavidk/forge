@@ -1,6 +1,99 @@
 #!/bin/bash
 # lib/99-finalize.sh — welcome.php, initial git commit, summary
 
+_whp_browser_tester_row() {
+  [ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ] || return 0
+  cat <<'EH'
+    <div class="agent-row" style="border-color:rgba(56,189,248,.3)">
+      <div class="agent-left" style="background:rgba(56,189,248,.06)">
+        <div class="agent-name" style="color:var(--accent2)">browser-tester</div>
+        <div class="agent-scope">Chrome DevTools &middot; E2E &middot; UX</div>
+      </div>
+      <div class="agent-right">Kører visuelle og funktionelle tests i Chrome via MCP. Validerer user-flows, responsive layouts og JavaScript-interaktioner i en rigtig browser.</div>
+    </div>
+EH
+}
+
+_whp_mcp_section() {
+  [ "${USE_VIAVI_SKILLS:-N}" = "Y" ] || [ "${USE_CONTEXT7:-N}" = "Y" ] || [ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ] || return 0
+  echo '<div class="div"></div>'
+  echo ''
+  echo '<!-- MCP-SERVERE -->'
+  echo '<section class="sec fu2" id="mcp">'
+  echo '  <span class="sec-tag">MCP-servere</span>'
+  echo '  <h2 class="sec-h2">Ekstern viden direkte i Claude.</h2>'
+  echo '  <p class="sec-lead">MCP-servere giver Claude adgang til live dokumentation, browser-tests og team-skills &mdash; uden at forlade terminalen.</p>'
+  echo '  <div style="display:flex;flex-direction:column;gap:8px;margin-top:36px">'
+  if [ "${USE_VIAVI_SKILLS:-N}" = "Y" ]; then
+    cat <<'EH'
+    <div style="background:var(--surface);border:1px solid var(--bd);border-radius:12px;padding:18px 22px;display:grid;grid-template-columns:160px 1fr;gap:16px;align-items:start">
+      <div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--brand);font-weight:500;margin-bottom:4px">viavi-skills</div>
+        <div style="font-size:11px;color:var(--tm)">ViaVi &middot; skills &middot; patterns</div>
+      </div>
+      <div style="font-size:13px;color:var(--ts);line-height:1.65">Team-specifik viden fra ViaVi's centrale bibliotek. Trigger-baserede skills, design-patterns og projekt-regler &mdash; leveret som MCP-tools.</div>
+    </div>
+EH
+  fi
+  if [ "${USE_CONTEXT7:-N}" = "Y" ]; then
+    cat <<'EH'
+    <div style="background:var(--surface);border:1px solid var(--bd);border-radius:12px;padding:18px 22px;display:grid;grid-template-columns:160px 1fr;gap:16px;align-items:start">
+      <div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--brand);font-weight:500;margin-bottom:4px">context7</div>
+        <div style="font-size:11px;color:var(--tm)">Docs &middot; live &middot; versioned</div>
+      </div>
+      <div style="font-size:13px;color:var(--ts);line-height:1.65">Live, versions-nøjagtig dokumentation for PHP, Tailwind, SQLite og øvrige afhængigheder. Eliminerer hallucination om outdated API'er og funktioner.</div>
+    </div>
+EH
+  fi
+  if [ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ]; then
+    cat <<'EH'
+    <div style="background:var(--surface);border:1px solid var(--bd);border-radius:12px;padding:18px 22px;display:grid;grid-template-columns:160px 1fr;gap:16px;align-items:start">
+      <div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--brand);font-weight:500;margin-bottom:4px">chrome-devtools</div>
+        <div style="font-size:11px;color:var(--tm)">Browser &middot; CDP &middot; tests</div>
+      </div>
+      <div style="font-size:13px;color:var(--ts);line-height:1.65">Giver Claude direkte adgang til Chrome via Chrome DevTools Protocol. Kører browser-tester-agenten, inspicerer DOM og fanger konsolejl i realtid.</div>
+    </div>
+EH
+  fi
+  echo '  </div>'
+  echo '</section>'
+}
+
+_whp_aceternity_section() {
+  [ "${USE_ACETERNITY:-none}" != "none" ] || return 0
+  echo '<div class="div"></div>'
+  echo ''
+  echo '<!-- ANIMATIONER -->'
+  echo '<section class="sec fu2" id="animationer">'
+  echo '  <span class="sec-tag">Animationer</span>'
+  if [ "${USE_ACETERNITY:-none}" = "full" ]; then
+    echo '  <h2 class="sec-h2">Motion JS + Aceternity patterns.</h2>'
+    echo '  <p class="sec-lead">Motion JS er indlæst via CDN i alle sider. Aceternity-patterns er dokumenteret i DESIGN.md &mdash; Claude bruger dem automatisk ved UI-arbejde.</p>'
+  else
+    echo '  <h2 class="sec-h2">Motion JS klar.</h2>'
+    echo '  <p class="sec-lead">Motion JS er indlæst via CDN i alle sider. Brug <code style="font-family:'\''Geist Mono'\'',monospace;font-size:12px;color:var(--accent2)">window.motion</code> direkte i JavaScript.</p>'
+  fi
+  cat <<'EH'
+  <div style="margin-top:32px;display:flex;flex-direction:column;gap:12px">
+    <div style="background:var(--surface);border:1px solid var(--bd);border-radius:12px;padding:18px 22px">
+      <div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--tm);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Motion JS CDN</div>
+      <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts);line-height:1.7">Indlæst via <span style="color:var(--brand)">public/assets/partials/motion.html</span><br>Eksponeret som <span style="color:var(--accent2)">window.motion.animate</span>, <span style="color:var(--accent2)">window.motion.scroll</span>, <span style="color:var(--accent2)">window.motion.inView</span></div>
+    </div>
+EH
+  if [ "${USE_ACETERNITY:-none}" = "full" ]; then
+    cat <<'EH'
+    <div style="background:linear-gradient(135deg,rgba(232,121,160,.06),rgba(124,106,240,.03));border:1px solid rgba(232,121,160,.2);border-radius:12px;padding:18px 22px">
+      <div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Aceternity Patterns</div>
+      <div style="font-size:13px;color:var(--ts);line-height:1.65">Tilføjet til DESIGN.md &mdash; Claude kender patterns og bruger dem automatisk ved UI/UX-arbejde. Se <span style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--accent2)">DESIGN.md</span> for den fulde liste.</div>
+    </div>
+EH
+  fi
+  echo '  </div>'
+  echo '</section>'
+}
+
 generate_welcome_php() {
   cat > "$PROJECT/app/views/welcome.php" << WELCOMEOF
 <?php
@@ -272,6 +365,14 @@ Byg derefter ét modul ad gangen og kør dit fulde review- og sikkerhedsloop eft
           <div class="cmd-desc">Verificerer dashboard/rapport: matematisk konsistens, business-plausibilitet og krydscheck mod rå API-data. PASS / WARN / CRITICAL per metrik.</div>
         </div>
 
+        <div class="cmd-row" style="border-color:rgba(56,189,248,.3);background:linear-gradient(135deg,rgba(56,189,248,.06),rgba(124,106,240,.03))">
+          <div class="cmd-top">
+            <span class="cmd-name" style="color:var(--accent2)">/project:health</span>
+            <button class="cbtn" onclick="copyLine(this,'/project:health')">Kopiér</button>
+          </div>
+          <div class="cmd-desc">Tjekker MCP-servere, agenter og CLI-afhængigheder. Verificerer at hele Forge-stacken er i drift.</div>
+        </div>
+
       </div>
     </div>
 
@@ -350,8 +451,8 @@ Byg derefter ét modul ad gangen og kør dit fulde review- og sikkerhedsloop eft
 <!-- AGENTER -->
 <section class="sec fu2" id="agenter">
   <span class="sec-tag">Review-agenter</span>
-  <h2 class="sec-h2">6 specialister. Ingen blinde vinkler.</h2>
-  <p class="sec-lead">Kode, frontend, database og performance kører parallelt. Én CRITICAL-finding blokerer al videre progress. Data-integrity-auditoren spawner automatisk ved API-arbejde.</p>
+  <h2 class="sec-h2">8 specialister. Ingen blinde vinkler.</h2>
+  <p class="sec-lead">Kode, frontend, database, performance, browser og MCP-helbred kører parallelt. Én CRITICAL-finding blokerer al videre progress.</p>
 
   <div class="agents">
     <div class="agent-row">
@@ -396,11 +497,18 @@ Byg derefter ét modul ad gangen og kør dit fulde review- og sikkerhedsloop eft
       </div>
       <div class="agent-right">Validerer data fra eksterne API'er inden aggregering: valuta, tidszoner, metrik-definitioner, null vs. zero. Kører også sanity-check på færdige dashboards &mdash; matematisk konsistens og business-plausibilitet. Blokerer ved CRITICAL.</div>
     </div>
+$(_whp_browser_tester_row)
+    <div class="agent-row" style="border-color:rgba(56,189,248,.3)">
+      <div class="agent-left" style="background:rgba(56,189,248,.06)">
+        <div class="agent-name" style="color:var(--accent2)">mcp-health-check</div>
+        <div class="agent-scope">MCP &middot; tools &middot; connectivity</div>
+      </div>
+      <div class="agent-right">Verificerer at alle aktive MCP-servere svarer korrekt. Tjekker tool-tilgængelighed, autentifikation og svar-format. Blokerer ved dead tools eller auth-fejl.</div>
+    </div>
   </div>
 </section>
 
-<div class="div"></div>
-
+$(_whp_mcp_section)
 <!-- SKIFT AI-SYSTEM -->
 <section class="sec fu2" id="skift">
   <span class="sec-tag">Skift AI-system</span>
@@ -467,6 +575,7 @@ Byg derefter ét modul ad gangen og kør dit fulde review- og sikkerhedsloop eft
   </div>
 </section>
 
+$(_whp_aceternity_section)
 <div class="div"></div>
 
 <!-- TILGÅ DENNE SIDE IGEN -->

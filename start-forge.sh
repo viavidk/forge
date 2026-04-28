@@ -24,12 +24,12 @@ show_help() {
   echo "    forge --help           Vis denne hjælp"
   echo ""
   echo "  Genererede projekter kræver: php, composer, git"
-  echo "  Mere info: https://github.com/viavi/forge"
+  echo "  Mere info: https://github.com/viavidk/forge"
   echo ""
 }
 
 if [ "${1:-}" = "update" ]; then
-  echo "Opdaterer Forge fra https://github.com/viavi/forge..."
+  echo "Opdaterer Forge fra https://github.com/viavidk/forge..."
   cd "$FORGE_ROOT"
   git pull
   echo "✓ Forge er opdateret"

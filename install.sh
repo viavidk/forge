@@ -1,11 +1,11 @@
 #!/bin/bash
 # ViaVi Forge — installer
-# Brug: curl -fsSL https://raw.githubusercontent.com/viavi/forge/main/install.sh | bash
+# Brug: curl -fsSL https://raw.githubusercontent.com/viavidk/forge/main/install.sh | bash
 set -e
 
 INSTALL_DIR="$HOME/.local/share/forge"
 BIN_DIR="$HOME/.local/bin"
-REPO="https://github.com/viavi/forge"
+REPO="https://github.com/viavidk/forge"
 
 # Farver
 BOLD="\033[1m"
