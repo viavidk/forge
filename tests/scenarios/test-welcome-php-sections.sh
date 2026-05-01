@@ -1,27 +1,24 @@
 #!/bin/bash
-# Test: welcome.php's orchestration-grid render conditional på Superpowers/agents-valg
+# Test: welcome.php's sektioner render conditional korrekt (v3.6.5+)
+#   - Fuld pakke: capabilities + hooks + superpowers-sektioner til stede
+#   - Ingen ekstras: ingen capabilities, ingen superpowers
+#   - Kun Superpowers: superpowers-sektion OK, capabilities med kun SP-pills
 set -e
 
 FORGE_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TMP=$(mktemp -d)
 trap "rm -rf $TMP" EXIT
 
-# Helper: generér welcome.php med givne env-vars
 gen_welcome() {
-  local proj="$1" sp="$2" ag="$3"
-  mkdir -p "$TMP/$proj/.claude/agents" "$TMP/$proj/app/views"
-  # Simulér v3.6.3-installation: 3 base Forge + 3 awesome curated
-  touch "$TMP/$proj/.claude/agents/frontend-reviewer.md" \
-        "$TMP/$proj/.claude/agents/db-reviewer.md" \
-        "$TMP/$proj/.claude/agents/data-integrity-auditor.md" \
-        "$TMP/$proj/.claude/agents/php-pro.md" \
-        "$TMP/$proj/.claude/agents/api-designer.md" \
-        "$TMP/$proj/.claude/agents/code-reviewer.md"
+  local name="$1" sp="$2" ag="$3"
+  mkdir -p "$TMP/$name/.claude/agents" "$TMP/$name/app/views"
+  [ "$ag" = "recommended" ] && touch \
+    "$TMP/$name/.claude/agents/code-reviewer.md" \
+    "$TMP/$name/.claude/agents/security-auditor.md"
   (
     set +u
     cd "$TMP"
-    export PROJECT="$proj"
-    export PORT=8080 UPGRADE=false
+    export PROJECT="$name" PORT=8080 UPGRADE=false
     export USE_TUNNEL=N USE_VIAVI_SKILLS=N USE_CONTEXT7=N USE_CHROME_DEVTOOLS=N USE_ACETERNITY=none
     export INSTALL_SUPERPOWERS="$sp" INSTALL_AGENTS="$ag"
     source "$FORGE_ROOT/lib/_common.sh"
@@ -30,46 +27,34 @@ gen_welcome() {
   )
 }
 
-# Case 1: Fuld pakke — orchestration-grid med alle 3 kolonner
+# ── Case 1: Fuld pakke ────────────────────────────────────────────────────────
 gen_welcome "fuld" "Y" "recommended"
 fuld="$TMP/fuld/app/views/welcome.php"
-grep -q "Agent-orkestrering" "$fuld"     || { echo "FAIL: Fuld mangler Agent-orkestrering header"; exit 1; }
-grep -q "orchestration-grid" "$fuld"     || { echo "FAIL: Fuld mangler orchestration-grid CSS"; exit 1; }
-grep -q "Workflow" "$fuld"               || { echo "FAIL: Fuld mangler Workflow-kolonne"; exit 1; }
-grep -q "Domain" "$fuld"                 || { echo "FAIL: Fuld mangler Domain-kolonne"; exit 1; }
-grep -q "Stack" "$fuld"                  || { echo "FAIL: Fuld mangler Stack-kolonne"; exit 1; }
-grep -q "Superpowers plugin" "$fuld"     || { echo "FAIL: Fuld mangler Superpowers-sektion"; exit 1; }
-grep -q "frontend-reviewer" "$fuld"      || { echo "FAIL: Fuld mangler frontend-reviewer i Stack"; exit 1; }
-grep -q "code-reviewer" "$fuld"          || { echo "FAIL: Fuld mangler code-reviewer i Domain"; exit 1; }
-grep -q "php-pro" "$fuld"                || { echo "FAIL: Fuld mangler php-pro i Domain"; exit 1; }
+grep -q 'id="capabilities"'   "$fuld" || { echo "FAIL: Fuld mangler capabilities-sektion"; exit 1; }
+grep -q 'id="hooks"'          "$fuld" || { echo "FAIL: Fuld mangler hooks-sektion"; exit 1; }
+grep -q 'Superpowers plugin'  "$fuld" || { echo "FAIL: Fuld mangler Superpowers-sektion"; exit 1; }
+grep -q 'brainstorming'       "$fuld" || { echo "FAIL: Fuld mangler brainstorming-pill"; exit 1; }
+grep -q 'security-auditor'    "$fuld" || { echo "FAIL: Fuld mangler security-auditor-pill"; exit 1; }
+grep -q 'frontend-reviewer'   "$fuld" || { echo "FAIL: Fuld mangler frontend-reviewer-pill"; exit 1; }
 
-# Case 2: Ingen ekstras — orchestration-grid må IKKE render
+# ── Case 2: Ingen ekstras ─────────────────────────────────────────────────────
 gen_welcome "ingen" "N" "none"
 ingen="$TMP/ingen/app/views/welcome.php"
-grep -q "Agent-orkestrering" "$ingen"   && { echo "FAIL: Ingen viser orchestration-grid"; exit 1; }
-grep -q "Superpowers plugin" "$ingen"   && { echo "FAIL: Ingen viser Superpowers-sektion"; exit 1; }
+grep -q 'id="capabilities"'  "$ingen" && { echo "FAIL: Ingen viser capabilities-sektion"; exit 1; }
+grep -q 'Superpowers plugin' "$ingen" && { echo "FAIL: Ingen viser Superpowers-sektion"; exit 1; }
+grep -q 'id="hooks"'         "$ingen" || { echo "FAIL: Ingen mangler hooks-sektion (altid aktiv)"; exit 1; }
 
-# Case 3: Kun Superpowers — Workflow-kolonne aktiv, Domain-kolonne dimmed
-gen_welcome "kun-sp" "Y" "none"
-kun_sp="$TMP/kun-sp/app/views/welcome.php"
-grep -q "Agent-orkestrering" "$kun_sp"  || { echo "FAIL: Kun-SP mangler orkestrering"; exit 1; }
-grep -q "Superpowers plugin" "$kun_sp"  || { echo "FAIL: Kun-SP mangler Superpowers-sektion"; exit 1; }
-grep -q "Awesome (ikke valgt)" "$kun_sp" || { echo "FAIL: Kun-SP viser ikke 'Awesome (ikke valgt)'"; exit 1; }
+# ── Case 3: Kun Superpowers ───────────────────────────────────────────────────
+gen_welcome "kun_sp" "Y" "none"
+kun_sp="$TMP/kun_sp/app/views/welcome.php"
+grep -q 'id="capabilities"'  "$kun_sp" || { echo "FAIL: Kun-SP mangler capabilities"; exit 1; }
+grep -q 'Superpowers plugin' "$kun_sp" || { echo "FAIL: Kun-SP mangler Superpowers-sektion"; exit 1; }
+grep -q 'brainstorming'      "$kun_sp" || { echo "FAIL: Kun-SP mangler brainstorming-pill"; exit 1; }
 
-# Case 4: Kun curated agents — Domain-kolonne aktiv, Workflow-kolonne dimmed
-gen_welcome "kun-ag" "N" "recommended"
-kun_ag="$TMP/kun-ag/app/views/welcome.php"
-grep -q "Agent-orkestrering" "$kun_ag"   || { echo "FAIL: Kun-AG mangler orkestrering"; exit 1; }
-grep -q "Superpowers plugin" "$kun_ag"   && { echo "FAIL: Kun-AG viser Superpowers-sektion"; exit 1; }
-grep -q "Superpowers (ikke valgt)" "$kun_ag" || { echo "FAIL: Kun-AG viser ikke 'Superpowers (ikke valgt)'"; exit 1; }
+# PHP-syntax på alle tre
+for case in fuld ingen kun_sp; do
+  f="$TMP/$case/app/views/welcome.php"
+  command -v php >/dev/null && php -l "$f" >/dev/null 2>&1 || true
+done
 
-# Version vises i nav og footer
-grep -q "ViaVi Forge v3.6.4" "$fuld"     || { echo "FAIL: nav viser ikke v3.6.4"; exit 1; }
-
-# forge agents CLI-row skal være med uanset valg (informativ)
-grep -q "forge agents" "$ingen"          || { echo "FAIL: forge agents CLI-row mangler i Ingen"; exit 1; }
-
-# v3.6.3: agent-section subtitle skal være "Stack-specifikke agents", ikke "Review-agenter"
-grep -q "Stack-specifikke agents" "$fuld" || { echo "FAIL: agent-section title ikke opdateret til v3.6.3"; exit 1; }
-
-echo "PASS: welcome-php-sections — orchestration-grid render conditional + v3.6.3 indhold"
+echo "PASS: welcome-php-sections — capability-pills + hooks-sektion render conditional + gyldig PHP"

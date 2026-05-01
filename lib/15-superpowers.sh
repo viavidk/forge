@@ -7,10 +7,37 @@
 # brugeren åbner projektet med `claude`.
 
 prompt_agentic_discipline() {
-  # v3.6.5: Fuld pakke altid — orkestreringen er usynlig for brugeren.
-  # SUPERPOWERS_DEFAULT / AGENTS_DEFAULT kan overstyres fra tests og --advanced.
-  INSTALL_SUPERPOWERS="${SUPERPOWERS_DEFAULT:-Y}"
-  INSTALL_AGENTS="${AGENTS_DEFAULT:-recommended}"
+  # Fast + Guided: altid fuld pakke, ingen prompt. Orkestreringen er usynlig.
+  # Advanced: viser valg — power-users kan fravælge Superpowers eller agents.
+  if [ "${FORGE_MODE:-guided}" != "advanced" ]; then
+    INSTALL_SUPERPOWERS="${SUPERPOWERS_DEFAULT:-Y}"
+    INSTALL_AGENTS="${AGENTS_DEFAULT:-recommended}"
+    export INSTALL_SUPERPOWERS INSTALL_AGENTS
+    return 0
+  fi
+
+  local default_choice=1
+  [ "$PROJECT_PROFILE" = "backend" ] && default_choice=3
+
+  echo ""
+  echo "  ${BOLD}AI-capabilities${RESET}  ${DIM}(Advanced — fast/guided installerer altid fuld pakke)${RESET}"
+  echo "  ─────────────────────────────────────────"
+  echo "  [1] Fuld pakke         ${DIM}(anbefalet)${RESET}"
+  echo "  [2] Kun Superpowers    ${DIM}(workflow-disciplin, ingen curated agents)${RESET}"
+  echo "  [3] Kun curated agents ${DIM}(domain-eksperter, ingen workflow-tvang)${RESET}"
+  echo "  [4] Ingen ekstras      ${DIM}(kun Forge stack-agents)${RESET}"
+  echo ""
+  printf "  Vælg [%s]: " "$default_choice"
+  read DISCIPLINE_CHOICE
+  DISCIPLINE_CHOICE="${DISCIPLINE_CHOICE:-$default_choice}"
+
+  case "$DISCIPLINE_CHOICE" in
+    2) INSTALL_SUPERPOWERS="Y"; INSTALL_AGENTS="none"        ;;
+    3) INSTALL_SUPERPOWERS="N"; INSTALL_AGENTS="recommended" ;;
+    4) INSTALL_SUPERPOWERS="N"; INSTALL_AGENTS="none"        ;;
+    *) INSTALL_SUPERPOWERS="Y"; INSTALL_AGENTS="recommended" ;;
+  esac
+
   export INSTALL_SUPERPOWERS INSTALL_AGENTS
 }
 

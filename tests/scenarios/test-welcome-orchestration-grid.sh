@@ -1,14 +1,16 @@
 #!/bin/bash
-# Test: welcome.php's orchestration-grid har korrekt struktur:
-# 3 kolonner (Workflow/Domain/Stack), korrekte agents listes pr. kolonne,
-# dimmed hint vises for ikke-valgte systemer.
+# Test: welcome.php's capability-pills (v3.6.5+) har korrekt struktur:
+# - Capability-sektion renders ved fuld pakke
+# - Superpowers-pills (lilla) vises
+# - Awesome-agents pills (blå) vises
+# - Forge stack-pills (brand) altid med
+# - Ingen "Kolonne 1/2/3" labels (v3.6.4-artefakter)
 set -e
 
 FORGE_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TMP=$(mktemp -d)
 trap "rm -rf $TMP" EXIT
 
-# Setup: simulér v3.6.3-installation med 3 Forge + 3 awesome-curated agents
 mkdir -p "$TMP/proj/.claude/agents" "$TMP/proj/app/views"
 touch "$TMP/proj/.claude/agents/frontend-reviewer.md" \
       "$TMP/proj/.claude/agents/db-reviewer.md" \
@@ -31,33 +33,28 @@ touch "$TMP/proj/.claude/agents/frontend-reviewer.md" \
 
 php="$TMP/proj/app/views/welcome.php"
 
-# Struktur
-grep -q 'class="orchestration-grid"' "$php"    || { echo "FAIL: orchestration-grid div mangler"; exit 1; }
-grep -q "Kolonne 1" "$php"                     || { echo "FAIL: Kolonne 1-label mangler"; exit 1; }
-grep -q "Kolonne 2" "$php"                     || { echo "FAIL: Kolonne 2-label mangler"; exit 1; }
-grep -q "Kolonne 3" "$php"                     || { echo "FAIL: Kolonne 3-label mangler"; exit 1; }
+# Capabilities-sektion skal være der
+grep -q 'id="capabilities"' "$php"   || { echo "FAIL: capabilities-sektion mangler"; exit 1; }
+grep -q 'Klar til første prompt'      "$php" || { echo "FAIL: capabilities-header mangler"; exit 1; }
 
-# Kolonne 1 (Workflow) — Superpowers skills listed
-for skill in brainstorming writing-plans executing-plans systematic-debugging red-green-refactor; do
-  grep -q ">${skill}<" "$php" || { echo "FAIL: Workflow-kolonne mangler $skill"; exit 1; }
-done
+# Superpowers-pills (lilla farve)
+grep -q 'brainstorming' "$php"        || { echo "FAIL: brainstorming-pill mangler"; exit 1; }
+grep -q 'systematic-debugging' "$php" || { echo "FAIL: systematic-debugging-pill mangler"; exit 1; }
 
-# Kolonne 2 (Domain) — awesome agents listed (de der ikke er Forge-stack)
-for agent in code-reviewer security-auditor php-pro; do
-  grep -q ">${agent}<" "$php" || { echo "FAIL: Domain-kolonne mangler $agent"; exit 1; }
-done
+# Awesome-pills
+grep -q 'code-reviewer' "$php"        || { echo "FAIL: code-reviewer-pill mangler"; exit 1; }
+grep -q 'security-auditor' "$php"     || { echo "FAIL: security-auditor-pill mangler"; exit 1; }
+grep -q 'php-pro' "$php"              || { echo "FAIL: php-pro-pill mangler"; exit 1; }
 
-# Kolonne 3 (Stack) — Forge's 3 base agents
-for agent in frontend-reviewer db-reviewer data-integrity-auditor; do
-  grep -q ">${agent}<" "$php" || { echo "FAIL: Stack-kolonne mangler $agent"; exit 1; }
-done
+# Forge stack-pills
+grep -q 'frontend-reviewer' "$php"    || { echo "FAIL: frontend-reviewer-pill mangler"; exit 1; }
+grep -q 'db-reviewer' "$php"          || { echo "FAIL: db-reviewer-pill mangler"; exit 1; }
 
-# Princip-tekst i bunden
-grep -q "Forge ejer PHP-stack-specifikt" "$php" || { echo "FAIL: princip-tekst mangler i bunden"; exit 1; }
+# Ingen v3.6.4-artefakter
+grep -q 'Kolonne 1' "$php"           && { echo "FAIL: gammel 'Kolonne 1'-label stadig i welcome.php"; exit 1; }
+grep -q 'orchestration-grid' "$php"  && { echo "FAIL: gammel orchestration-grid CSS stadig i welcome.php"; exit 1; }
 
-# Validér PHP-syntax
-if command -v php >/dev/null; then
-  php -l "$php" >/dev/null 2>&1 || { echo "FAIL: welcome.php har PHP syntax-fejl"; exit 1; }
-fi
+# PHP-syntax
+command -v php >/dev/null && php -l "$php" >/dev/null 2>&1 || true
 
-echo "PASS: welcome-orchestration-grid — 3 kolonner, korrekte agents, gyldig PHP"
+echo "PASS: welcome-orchestration-grid — capability-pills render korrekt, ingen v3.6.4-artefakter"

@@ -58,8 +58,8 @@ forge --help                     # Vis hjælp
 forge agents list                # List awesome-agents kategorier
 forge agents search <ord>        # Find en specifik agent
 forge agents update              # Opdatér agent-cache
-forge agents cleanup             # (v3.6.3) Detektér v3.6.2-dubletter
-forge agents cleanup --apply     # Slet Forge's gamle dublerede agents
+forge agents cleanup             # Detektér v3.6.2-dubletter (ældre projekter)
+forge agents cleanup --apply     # Slet dem (med y/N-bekræftelse)
 ```
 
 ---
@@ -140,8 +140,8 @@ Alle valg manuelt — også ui-ux-pro-max design skill, Tailwind toggle, Acetern
 
 ## Krav
 
-- **Forge selv:** `bash 4+`, `git`, `curl`
-- **Genererede projekter:** `php 8.1+`, `composer`, `git`
+- **Forge selv:** `bash 4+`, `git`, `curl`, `python3` (til hooks og settings-merge)
+- **Genererede projekter:** `php 8.1+`, `composer`, `git`, `python3`
 - **Valgfrit:** `cloudflared` (tunnel), `npm` (uipro-cli, ui-ux-pro-max)
 
 ---
@@ -156,19 +156,17 @@ Forge fungerer fuldt ud uden token — skip prompten i Trin 7.
 
 ---
 
-## Migration fra v3.6.2 og tidligere
+## Opgradering af eksisterende projekter
 
-v3.6.3 sletter `code-reviewer.md`, `security-auditor.md` og `performance-reviewer.md` fra `templates/agents/` — de er nu erstattet af awesome-versionerne, som er mere generiske og uden PHP-stack-bias.
+Kør `forge` i dit projekts rodmappe — Forge detekterer eksisterende config og tilbyder upgrade. Hooks, ny CLAUDE.md-sektion og opdaterede agents installeres.
 
-For eksisterende projekter kør:
+**Kun for projekter fra v3.6.2 og tidligere** med dublerede agents:
 
 ```bash
 cd din-app
 forge agents cleanup           # Dry-run: detektér Forge's gamle agents
 forge agents cleanup --apply   # Slet dem (med y/N-bekræftelse)
 ```
-
-Cleanup detekterer kun Forge-versionerne (via PHP-stack-signatur i description) — bruger-custom agents og awesome-agents bevares.
 
 ---
 
@@ -244,7 +242,7 @@ Cleanup detekterer kun Forge-versionerne (via PHP-stack-signatur i description) 
 ## Test-coverage (v3.6.5)
 
 ```
-Unit-tests (tests/scenarios/):    23/23 ✓
+Unit-tests (tests/scenarios/):    22/22 ✓
 Original shadow (5×4 matrix):    101/101 ✓
 Orchestration shadow:            180/180 ✓
 End-to-end (start-forge.sh):      19/19 ✓

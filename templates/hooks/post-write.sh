@@ -34,7 +34,7 @@ if [ -z "$CONTEXT" ]; then
   BASENAME=$(basename "$FILE")
 
   # ── 2. Security-sensitiv fil ───────────────────────────────────────────────
-  if echo "$BASENAME" | grep -qiE '^(auth|login|register|password|session|token|csrf|user|account|admin)[._-]'; then
+  if echo "$BASENAME" | grep -qiE '(auth|login|register|logout|password|session|token|csrf)'; then
     CONTEXT="SECURITY NOTICE: $BASENAME er auth/session-kritisk. Overvej at køre security-auditor agenten inden commit."
   elif echo "$FILE" | grep -qiE '/(auth|login|session|password|csrf)/'; then
     CONTEXT="SECURITY NOTICE: Fil i security-kritisk mappe ($BASENAME). Overvej security-auditor inden commit."
