@@ -3,7 +3,7 @@
 # Modulær projektgenerator for PHP/SQLite + Claude Code
 set -euo pipefail
 
-FORGE_VERSION="3.6.1"
+FORGE_VERSION="3.6.2"
 export FORGE_VERSION
 
 # ---------------------------------------------------------------------------

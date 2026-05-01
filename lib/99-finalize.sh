@@ -61,6 +61,112 @@ EH
   echo '</section>'
 }
 
+_whp_superpowers_section() {
+  [ "${INSTALL_SUPERPOWERS:-N}" = "Y" ] || return 0
+  cat <<'EH'
+<div class="div"></div>
+
+<!-- SUPERPOWERS -->
+<section class="sec fu2" id="superpowers">
+  <span class="sec-tag" style="color:#a78bfa">Superpowers plugin</span>
+  <h2 class="sec-h2">Disciplineret workflow før kode.</h2>
+  <p class="sec-lead">Superpowers tvinger Claude Code igennem Clarify &rarr; Design &rarr; Plan &rarr; Code &rarr; Verify &mdash; så komplekse features ikke bliver til debugging. Plugin'et auto-installeres ved første <span class="mono">claude</span>-start.</p>
+
+  <div style="margin-top:36px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+    <div style="background:var(--surface);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;text-align:center">
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#a78bfa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">1. Clarify</div>
+      <div style="font-size:11px;color:var(--ts);line-height:1.6">Socratic spørgsmål før noget kode skrives</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;text-align:center">
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#a78bfa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">2. Design</div>
+      <div style="font-size:11px;color:var(--ts);line-height:1.6">Foresl&aring;r arkitektur f&oslash;r implementation</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;text-align:center">
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#a78bfa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">3. Plan</div>
+      <div style="font-size:11px;color:var(--ts);line-height:1.6">Bryder arbejdet op i bid-st&oslash;rrelser med TDD</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;text-align:center">
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#a78bfa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">4. Code</div>
+      <div style="font-size:11px;color:var(--ts);line-height:1.6">Skriver test f&oslash;rst, derefter implementation</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;text-align:center">
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#a78bfa;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">5. Verify</div>
+      <div style="font-size:11px;color:var(--ts);line-height:1.6">Code-reviewer agent validerer mod planen</div>
+    </div>
+  </div>
+
+  <div style="margin-top:18px;background:rgba(167,139,250,.05);border:1px solid rgba(167,139,250,.18);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--ts);line-height:1.7">
+    <strong style="color:#a78bfa">Skip f&oslash;les langsommere de f&oslash;rste 30 sekunder &mdash; sparer ofte 30 minutters debugging.</strong> For trivielle ting kan du sige <span class="mono">"skip clarify"</span> eller <span class="mono">"just fix this"</span>. Forfatter: Jesse Vincent (MIT). Se <span class="mono">obra/superpowers</span>.
+  </div>
+</section>
+EH
+}
+
+_whp_awesome_agents_section() {
+  case "${INSTALL_AGENTS:-none}" in
+    recommended|custom) ;;
+    *) return 0 ;;
+  esac
+
+  # Find faktisk installerede curated agents (dem der ikke matcher Forge's egne)
+  local forge_owned=("code-reviewer" "security-auditor" "frontend-reviewer" "db-reviewer" "performance-reviewer" "data-integrity-auditor" "browser-tester" "mcp-health-check")
+  local installed=()
+  if [ -d "$PROJECT/.claude/agents" ]; then
+    for f in "$PROJECT"/.claude/agents/*.md; do
+      [ -f "$f" ] || continue
+      local name; name=$(basename "$f" .md)
+      local is_forge=0
+      for fo in "${forge_owned[@]}"; do
+        [ "$name" = "$fo" ] && is_forge=1 && break
+      done
+      [ "$is_forge" = 0 ] && installed+=("$name")
+    done
+  fi
+
+  [ "${#installed[@]}" -gt 0 ] || return 0
+
+  cat <<EH
+<div class="div"></div>
+
+<!-- AWESOME AGENTS -->
+<section class="sec fu2" id="awesome-agents">
+  <span class="sec-tag" style="color:#38BDF8">Curated awesome-agents</span>
+  <h2 class="sec-h2">${#installed[@]} domain-eksperter ved siden af.</h2>
+  <p class="sec-lead">Hentet fra <span class="mono">VoltAgent/awesome-claude-code-subagents</span> &mdash; specialiseret per opgavetype. K&oslash;r <span class="mono">forge agents list</span> for at se alle 100+ tilg&aelig;ngelige.</p>
+
+  <div style="margin-top:36px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">
+EH
+  for name in "${installed[@]}"; do
+    local desc=""
+    case "$name" in
+      php-pro)              desc="Modern PHP 8+ &middot; framework patterns" ;;
+      sql-pro)              desc="Query-optimering &middot; indexering &middot; schema" ;;
+      javascript-pro)       desc="Modern JS &middot; ES2020+ &middot; async patterns" ;;
+      typescript-pro)       desc="Strict typing &middot; generics &middot; type safety" ;;
+      api-designer)         desc="REST &middot; GraphQL &middot; versioning" ;;
+      frontend-developer)   desc="Component arkitektur &middot; tilgængelighed" ;;
+      accessibility-tester) desc="WCAG 2.1 &middot; keyboard nav &middot; screen reader" ;;
+      performance-engineer) desc="LCP &middot; CLS &middot; bundle size &middot; caching" ;;
+      qa-expert)            desc="Test-strategi &middot; coverage &middot; regression" ;;
+      *)                    desc="Specialist agent" ;;
+    esac
+    cat <<EH2
+    <div style="background:var(--surface);border:1px solid var(--bd);border-radius:10px;padding:14px 16px">
+      <div style="font-family:'Geist Mono',monospace;font-size:12px;color:#38BDF8;font-weight:500;margin-bottom:4px">${name}</div>
+      <div style="font-size:11px;color:var(--ts);line-height:1.55">${desc}</div>
+    </div>
+EH2
+  done
+  cat <<'EH'
+  </div>
+
+  <div style="margin-top:18px;background:rgba(56,189,248,.05);border:1px solid rgba(56,189,248,.18);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--ts);line-height:1.7">
+    <strong style="color:#38BDF8">Forge's egne agents bevares uændret.</strong> Disse domain-eksperter installeres ved siden af i samme <span class="mono">.claude/agents/</span>-mappe. Hvis du vil tilføje flere: <span class="mono">forge agents search &lt;ord&gt;</span> og kopier den ønskede <span class="mono">.md</span>-fil ind i mappen.
+  </div>
+</section>
+EH
+}
+
 _whp_aceternity_section() {
   [ "${USE_ACETERNITY:-none}" != "none" ] || return 0
   echo '<div class="div"></div>'
@@ -288,6 +394,8 @@ Byg derefter ét modul ad gangen og kør dit fulde review- og sikkerhedsloop eft
 
 </section>
 
+$(_whp_superpowers_section)
+
 <div class="div"></div>
 
 <!-- COMMANDS -->
@@ -373,6 +481,14 @@ Byg derefter ét modul ad gangen og kør dit fulde review- og sikkerhedsloop eft
           <div class="cmd-desc">Tjekker MCP-servere, agenter og CLI-afhængigheder. Verificerer at hele Forge-stacken er i drift.</div>
         </div>
 
+        <div class="cmd-row" style="border-color:rgba(167,139,250,.3);background:linear-gradient(135deg,rgba(167,139,250,.06),rgba(56,189,248,.03))">
+          <div class="cmd-top">
+            <span class="cmd-name" style="color:#a78bfa">forge agents <span class="cmd-arg">[list|search|update]</span></span>
+            <button class="cbtn" onclick="copyLine(this,'forge agents list')">Kopiér</button>
+          </div>
+          <div class="cmd-desc">CLI-kommando: list kategorier, søg efter en specifik agent (fx <span class="mono">forge agents search nextjs</span>) eller opdater cache.</div>
+        </div>
+
       </div>
     </div>
 
@@ -451,7 +567,7 @@ Byg derefter ét modul ad gangen og kør dit fulde review- og sikkerhedsloop eft
 <!-- AGENTER -->
 <section class="sec fu2" id="agenter">
   <span class="sec-tag">Review-agenter</span>
-  <h2 class="sec-h2">8 specialister. Ingen blinde vinkler.</h2>
+  <h2 class="sec-h2">8 Forge-specialister. Ingen blinde vinkler.</h2>
   <p class="sec-lead">Kode, frontend, database, performance, browser og MCP-helbred kører parallelt. Én CRITICAL-finding blokerer al videre progress.</p>
 
   <div class="agents">
@@ -507,6 +623,8 @@ $(_whp_browser_tester_row)
     </div>
   </div>
 </section>
+
+$(_whp_awesome_agents_section)
 
 $(_whp_mcp_section)
 <!-- SKIFT AI-SYSTEM -->

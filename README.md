@@ -1,4 +1,4 @@
-# ViaVi Forge v3.6.1
+# ViaVi Forge v3.6.2
 
 Produktionsklar PHP/SQLite projektgenerator med Claude Code AI-agents — præ-konfigureret med reviewers, slash commands, rules, skills, **Superpowers-disciplin** og **curated awesome-agents**.
 
