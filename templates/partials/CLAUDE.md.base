@@ -75,28 +75,52 @@ enough") is a violation of this contract.
 
 ## Agents
 
-Use these subagents by spawning them with the Agent tool:
+This project uses orchestrated agents from three sources. A detailed mapping
+plus a "when do I use which?"-table appears in the orchestration section
+below (when present) — Forge inserts it automatically when Superpowers or
+curated awesome-agents are installed.
 
-- **code-reviewer** → `.claude/agents/code-reviewer.md`
-  Spawn after every BUILD. Evaluates PHP quality, structure, modularity.
+### Forge stack-specific agents
+
+Spawn these via the Agent tool when PHP/SQLite/Forge-specific concerns are
+in play:
 
 - **frontend-reviewer** → `.claude/agents/frontend-reviewer.md`
-  Spawn after any HTML/CSS/JS change. Evaluates Tailwind/DESIGN.md compliance, JS quality, REST API patterns.
+  Spawn after any HTML/CSS/JS change. Evaluates Tailwind/DESIGN.md compliance,
+  JS quality, REST API patterns.
 
 - **db-reviewer** → `.claude/agents/db-reviewer.md`
-  Spawn after any schema or query change. Evaluates SQLite schema, query safety, performance.
-
-- **performance-reviewer** → `.claude/agents/performance-reviewer.md`
-  Spawn after every BUILD. Evaluates PHP I/O, HTTP caching, output buffering, resources.
-
-- **security-auditor** → `.claude/agents/security-auditor.md`
-  Spawn after every code-reviewer pass. Evaluates PHP, JS, and REST API security.
+  Spawn after any schema or query change. Evaluates SQLite schema (WAL mode,
+  FK constraints), prepared statements, N+1 queries.
 
 - **data-integrity-auditor** → `.claude/agents/data-integrity-auditor.md`
-  Spawn automatically when fetching data from external APIs (Criteo, Meta, Google Ads, DV360, GA4).
-  Run BEFORE any aggregation, calculation, or visualisation of external data.
-  Also trigger when user says "dashboardet er klar", "vis data", "deploy rapport", "sanity check".
-  Blocks all further progress on CRITICAL findings.
+  Spawn automatically when fetching data from external APIs (Criteo, Meta,
+  Google Ads, DV360, GA4). Run BEFORE any aggregation, calculation, or
+  visualisation of external data. Also trigger when user says "dashboardet
+  er klar", "vis data", "deploy rapport", "sanity check". Blocks all further
+  progress on CRITICAL findings.
+
+- **browser-tester** → `.claude/agents/browser-tester.md` (only if Chrome
+  DevTools MCP is configured)
+  E2E user-flow tests via Chrome DevTools Protocol.
+
+- **mcp-health-check** → `.claude/agents/mcp-health-check.md` (only if any
+  MCP is configured)
+  Verifies MCP-server health: tool availability, auth, response format.
+
+### Awesome curated agents (general domain expertise)
+
+If `INSTALL_AGENTS=recommended` was selected during scaffold, your
+`.claude/agents/` also contains generic specialists:
+
+- **code-reviewer** — general code quality review (replaces Forge's old PHP-
+  specific code-reviewer)
+- **security-auditor** — OWASP, auth, secrets, CSRF/XSS
+- **performance-engineer** — Web Vitals, bundle size, caching
+- Plus type-specific: accessibility-tester, php-pro, sql-pro, api-designer,
+  qa-expert, frontend-developer, javascript-pro (varies per project type)
+
+Run `forge agents list` to see the full library.
 
 ---
 
@@ -191,15 +215,18 @@ start.sh              — lokal udviklingsserver
 
 | Trigger                                    | Action                                                      |
 |--------------------------------------------|-------------------------------------------------------------|
-| After any PHP BUILD                        | Spawn code-reviewer + frontend-reviewer + db-reviewer + performance-reviewer in parallel |
-| After code-reviewer completes              | Spawn security-auditor (uses code-reviewer output)          |
-| After any HTML/CSS/JS change               | Spawn frontend-reviewer                                     |
-| After any schema or query change           | Spawn db-reviewer                                           |
+| After any PHP BUILD                        | Spawn `code-reviewer` (awesome) + `frontend-reviewer` (Forge) + `db-reviewer` (Forge) + `performance-engineer` (awesome) in parallel |
+| After `code-reviewer` completes            | Spawn `security-auditor` (awesome) — uses code-reviewer output |
+| After any HTML/CSS/JS change               | Spawn `frontend-reviewer` (Forge)                            |
+| After any schema or query change           | Spawn `db-reviewer` (Forge)                                  |
+| External API data fetched                  | Spawn `data-integrity-auditor` (Forge) — BEFORE aggregation  |
 | Score below 8 in any dimension             | Loop again                                                  |
 | Same issue appears twice                   | Refactor entire module                                      |
 | Any Critical finding from any agent        | Block progress until resolved                               |
 
-**Parallel agent rule:** When spawning independent agents (code-reviewer, frontend-reviewer, db-reviewer, performance-reviewer), always send them as a single multi-agent call so they run concurrently. Only security-auditor runs after, as it depends on code-reviewer output.
+**Parallel agent rule:** When spawning independent agents (`code-reviewer`, `frontend-reviewer`, `db-reviewer`, `performance-engineer`), always send them as a single multi-agent call so they run concurrently. Only `security-auditor` runs after, as it depends on code-reviewer output.
+
+**Source clarity:** `code-reviewer`, `security-auditor`, `performance-engineer` come from the awesome-agents library (general). `frontend-reviewer`, `db-reviewer`, `data-integrity-auditor`, `browser-tester`, `mcp-health-check` are Forge's PHP/SQLite-specific agents. If Superpowers is active, its `code-reviewer` subagent runs automatically after each Plan-step — you do not need to spawn the awesome `code-reviewer` separately during a Superpowers flow.
 
 ---
 

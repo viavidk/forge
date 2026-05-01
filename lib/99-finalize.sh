@@ -14,6 +14,21 @@ _whp_browser_tester_row() {
 EH
 }
 
+_whp_mcp_health_check_row() {
+  if [ "${USE_VIAVI_SKILLS:-N}" != "Y" ] && [ "${USE_CONTEXT7:-N}" != "Y" ] && [ "${USE_CHROME_DEVTOOLS:-N}" != "Y" ]; then
+    return 0
+  fi
+  cat <<'EH'
+    <div class="agent-row" style="border-color:rgba(56,189,248,.3)">
+      <div class="agent-left" style="background:rgba(56,189,248,.06)">
+        <div class="agent-name" style="color:var(--accent2)">mcp-health-check</div>
+        <div class="agent-scope">MCP &middot; tools &middot; connectivity</div>
+      </div>
+      <div class="agent-right">Verificerer at alle aktive MCP-servere svarer korrekt. Tjekker tool-tilg&aelig;ngelighed, autentifikation og svar-format. Blokerer ved dead tools eller auth-fejl.</div>
+    </div>
+EH
+}
+
 _whp_mcp_section() {
   [ "${USE_VIAVI_SKILLS:-N}" = "Y" ] || [ "${USE_CONTEXT7:-N}" = "Y" ] || [ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ] || return 0
   echo '<div class="div"></div>'
@@ -430,13 +445,12 @@ footer a:hover{color:var(--tp)}
     </div>
     <div class="prompt-box">
       <button class="prompt-copy" onclick="copyPrompt(this)">Kopiér</button>
-      <p class="prompt-text">Du har fuld kontekst i CLAUDE.md, DESIGN.md og .claude/-mappen &mdash; læs dem nu og bekræft du forstår stack, agenter og designsystem inden du fortsætter.
+      <p class="prompt-text">Læs CLAUDE.md, DESIGN.md og .claude/-mappen f&oslash;rst &mdash; bekr&aelig;ft du forst&aring;r stack, agent-orkestrering og designsystem.
 
-Vi skal bygge <span class="prompt-hl">[beskriv hvad systemet skal gøre]</span>
+Vi skal bygge <span class="prompt-hl">[beskriv hvad systemet skal g&oslash;re]</span>
 
 Login og brugeradministration er allerede sat op af Forge.
-Start med at lave en plan over sider, routes og modeller.
-Byg derefter ét modul ad gangen og kør dit fulde review- og sikkerhedsloop efter hvert.</p>
+F&oslash;lg orkestreringen i CLAUDE.md: Superpowers-flow for nye moduler, awesome-agents til generel kvalitet, Forge stack-agents til PHP/SQLite-specifikke valideringer.</p>
     </div>
   </div>
 
@@ -562,7 +576,7 @@ $(_whp_superpowers_section)
           <span class="skill-name">pre-commit</span>
           <span class="skill-badge">auto</span>
         </div>
-        <div class="skill-desc">Trigger: "commit", "klar til commit", "push". Kører alle 5 agenter og foreslår commit-besked.</div>
+        <div class="skill-desc">Trigger: "commit", "klar til commit", "push". K&oslash;rer alle relevante review-agenter (Forge stack + awesome curated) og foresl&aring;r commit-besked.</div>
       </div>
 
       <div class="skill-row">
@@ -570,7 +584,7 @@ $(_whp_superpowers_section)
           <span class="skill-name">security-review</span>
           <span class="skill-badge">auto</span>
         </div>
-        <div class="skill-desc">Trigger: ændringer til auth, sessions eller API-services. Blokerer ved CRITICAL-fund.</div>
+        <div class="skill-desc">Trigger: &aelig;ndringer til auth, sessions eller API-services. Spawner <span class="mono">security-auditor</span>-agent (awesome). Blokerer ved CRITICAL-fund.</div>
       </div>
 
       <div class="skill-row">
@@ -578,7 +592,7 @@ $(_whp_superpowers_section)
           <span class="skill-name">deploy</span>
           <span class="skill-badge">auto</span>
         </div>
-        <div class="skill-desc">Trigger: "klar til produktion", "deploy". Kører review og outputter deployment-tjekliste.</div>
+        <div class="skill-desc">Trigger: "klar til produktion", "deploy". K&oslash;rer fuld review og outputter deployment-tjekliste.</div>
       </div>
 
       <div class="skill-row">
@@ -588,22 +602,17 @@ $(_whp_superpowers_section)
         </div>
         <div class="skill-desc">Trigger: efter hvert modul + trin 1 i pre-commit. Opdaterer PROJECT.md med hvad der faktisk er bygget.</div>
       </div>
+$([ "$INCLUDE_UIUX" = "Y" ] && [ "$UIUX_INSTALLED" = "Y" ] && cat <<'UIUX_EOF'
 
       <div class="skill-row">
         <div class="skill-top">
           <span class="skill-name">ui-ux-pro-max</span>
           <span class="skill-badge">auto</span>
         </div>
-        <div class="skill-desc">Trigger: ved UI/UX-arbejde. 67 design-styles, 96 paletter, 57 font-par &mdash; validerer kontrast og tilgængelighed automatisk.</div>
+        <div class="skill-desc">Trigger: ved UI/UX-arbejde. 67 design-styles, 96 paletter, 57 font-par &mdash; validerer kontrast og tilg&aelig;ngelighed automatisk.</div>
       </div>
-
-      <div class="skill-row" style="border-color:rgba(16,185,129,.3);background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(56,189,248,.03))">
-        <div class="skill-top">
-          <span class="skill-name" style="color:#10b981">data-integrity-auditor</span>
-          <span class="skill-badge" style="color:#10b981;border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.1)">auto</span>
-        </div>
-        <div class="skill-desc">Trigger: API-kald til Criteo, Meta, Google Ads, GA4 mm. &mdash; validerer data inden aggregering. Trigger også ved "dashboardet er klar" og "vis data" &mdash; kører sanity-check automatisk.</div>
-      </div>
+UIUX_EOF
+)
 
       <div style="margin-top:16px;padding:16px 18px;background:linear-gradient(135deg,rgba(124,106,240,.06),rgba(232,121,160,.03));border:1px solid rgba(124,106,240,.15);border-radius:10px">
         <div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--brand);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">PROJECT.md &mdash; din bro til andre AI-systemer</div>
@@ -655,13 +664,7 @@ $(_whp_superpowers_section)
       <div class="agent-right">Validerer data fra eksterne API'er inden aggregering: valuta, tidszoner, metrik-definitioner, null vs. zero. Kører også sanity-check på færdige dashboards &mdash; matematisk konsistens og business-plausibilitet. Blokerer ved CRITICAL.</div>
     </div>
 $(_whp_browser_tester_row)
-    <div class="agent-row" style="border-color:rgba(56,189,248,.3)">
-      <div class="agent-left" style="background:rgba(56,189,248,.06)">
-        <div class="agent-name" style="color:var(--accent2)">mcp-health-check</div>
-        <div class="agent-scope">MCP &middot; tools &middot; connectivity</div>
-      </div>
-      <div class="agent-right">Verificerer at alle aktive MCP-servere svarer korrekt. Tjekker tool-tilgængelighed, autentifikation og svar-format. Blokerer ved dead tools eller auth-fejl.</div>
-    </div>
+$(_whp_mcp_health_check_row)
   </div>
 </section>
 
@@ -811,7 +814,7 @@ document.querySelectorAll('.fu2').forEach(function(el,i){
 });
 
 function copyPrompt(btn){
-  var text="Du har fuld kontekst i CLAUDE.md, DESIGN.md og .claude/-mappen — læs dem nu og bekræft du forstår stack, agenter og designsystem inden du fortsætter.\n\nVi skal bygge [beskriv hvad systemet skal gøre]\n\nLogin og brugeradministration er allerede sat op af Forge.\nStart med at lave en plan over sider, routes og modeller.\nByg derefter ét modul ad gangen og kør dit fulde review- og sikkerhedsloop efter hvert.";
+  var text="Læs CLAUDE.md, DESIGN.md og .claude/-mappen først — bekræft du forstår stack, agent-orkestrering og designsystem.\n\nVi skal bygge [beskriv hvad systemet skal gøre]\n\nLogin og brugeradministration er allerede sat op af Forge.\nFølg orkestreringen i CLAUDE.md: Superpowers-flow for nye moduler, awesome-agents til generel kvalitet, Forge stack-agents til PHP/SQLite-specifikke valideringer.";
   navigator.clipboard.writeText(text).then(function(){flashOk(btn);});
 }
 function copyLine(btn,text){

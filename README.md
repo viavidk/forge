@@ -1,4 +1,4 @@
-# ViaVi Forge
+# ViaVi Forge v3.6.4
 
 > **Et generator-værktøj der scaffolder produktionsklare PHP/SQLite-projekter med Claude Code AI-agents — orkestreret, præ-konfigureret og klar fra første prompt.**
 
@@ -218,6 +218,17 @@ Cleanup detekterer kun Forge-versionerne (via PHP-stack-signatur i description) 
 ---
 
 ## Changelog
+
+### v3.6.4 — Welcome-page polish + template-sweep ✓
+
+- `welcome.php` "Første prompt" omskrevet til at afspejle agent-orkestrering (ikke "fulde review-loop")
+- `pre-commit`-skill-beskrivelse: "Kører alle 5 agenter" → "alle relevante review-agenter (Forge stack + awesome curated)"
+- `data-integrity-auditor` fjernet fra Skills-sektion (det er en agent, ikke en skill)
+- `ui-ux-pro-max`-skill nu conditional: vises kun hvis faktisk installeret
+- `mcp-health-check` agent-row nu conditional på MCP-konfiguration (matcher hvad der reelt installeres)
+- `templates/partials/CLAUDE.md.base`: Agents-sektion delt i Forge stack + awesome curated, med klar source-attribution
+- `templates/commands/review.md`: `/project:review` opdateret med (Forge) / (awesome) source-tags
+- Self-improvement triggers omskrevet med kilde pr. agent + note om Superpowers-flow
 
 ### v3.6.3 — Agent-orkestrering ✓
 

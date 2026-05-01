@@ -64,7 +64,7 @@ grep -q "Superpowers plugin" "$kun_ag"   && { echo "FAIL: Kun-AG viser Superpowe
 grep -q "Superpowers (ikke valgt)" "$kun_ag" || { echo "FAIL: Kun-AG viser ikke 'Superpowers (ikke valgt)'"; exit 1; }
 
 # Version vises i nav og footer
-grep -q "ViaVi Forge v3.6.3" "$fuld"     || { echo "FAIL: nav viser ikke v3.6.3"; exit 1; }
+grep -q "ViaVi Forge v3.6.4" "$fuld"     || { echo "FAIL: nav viser ikke v3.6.4"; exit 1; }
 
 # forge agents CLI-row skal være med uanset valg (informativ)
 grep -q "forge agents" "$ingen"          || { echo "FAIL: forge agents CLI-row mangler i Ingen"; exit 1; }

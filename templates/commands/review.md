@@ -15,18 +15,20 @@ looping indefinitely.
 1. Read all files in `/app`, `/public`, `/config`
 
 2. **Spawn in parallel** (send all four as a single multi-agent call):
-   - `code-reviewer`        — PHP quality, structure, PSR-12, MVC separation
-   - `frontend-reviewer`    — Tailwind/DESIGN.md compliance, responsive design, accessibility, JS quality, REST API patterns
-   - `db-reviewer`          — SQLite schema, prepared statements, N+1, WAL, indexes
-   - `performance-reviewer` — PHP I/O, HTTP caching, output buffering, resources
+   - `code-reviewer` (awesome)        — general code quality, structure, maintainability
+   - `frontend-reviewer` (Forge)      — Tailwind/DESIGN.md compliance, responsive design, accessibility, JS quality, REST API patterns
+   - `db-reviewer` (Forge)            — SQLite schema, prepared statements, N+1, WAL, indexes
+   - `performance-engineer` (awesome) — Web Vitals, HTTP caching, bundle size, resources
 
    **Conditionally add:**
-   - `data-integrity-auditor` — if `/app/services/` contains any file
+   - `data-integrity-auditor` (Forge) — if `/app/services/` contains any file
      matching criteo|meta|ga4|google.ads|dv360|braze|talon (case-insensitive),
      spawn this agent too. It validates external API data handling.
 
 3. Wait for all four to complete, then spawn:
-   - `security-auditor` — uses code-reviewer output as input context
+   - `security-auditor` (awesome) — uses code-reviewer output as input context
+
+   **Note (v3.6.3 orchestration):** `code-reviewer`, `performance-engineer` and `security-auditor` come from the awesome-agents library (general). `frontend-reviewer`, `db-reviewer`, `data-integrity-auditor` are Forge's PHP/SQLite-specific agents. If you don't have the awesome agents installed, run `forge agents search code-reviewer` to add them.
 
 4. Merge all findings, deduplicate across agents
 
