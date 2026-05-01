@@ -1,17 +1,22 @@
 #!/bin/bash
-# lib/10-agents.sh — installer review-agenter + browser-tester + mcp-health-check
+# lib/10-agents.sh — installer Forge's stack-specifikke review-agenter
+#
+# Orkestrering (v3.6.3): Forge ejer KUN PHP-stack-specifikke agents.
+# - Generel code-reviewer/security-auditor/performance-reviewer er flyttet
+#   til Superpowers (workflow) + awesome (domain). Se forge-v3.6.3-plan.
+# - Forge-stack: frontend-reviewer (Tailwind+PHP), db-reviewer (SQLite WAL),
+#   data-integrity-auditor (Forge schema), browser-tester (Forge MCP),
+#   mcp-health-check (Forge MCP-config).
 
 install_agents() {
-  start_spinner "Installerer review-agenter..."
+  start_spinner "Installerer Forge stack-specifikke agenter..."
   mkdir -p "$PROJECT/.claude/agents"
 
-  # 6 eksisterende agenter fra templates
+  # Forge ejer kun stack-specifikke — de 3 generelle (code-reviewer,
+  # security-auditor, performance-reviewer) er fjernet i v3.6.3.
   local agents=(
-    code-reviewer
-    security-auditor
     frontend-reviewer
     db-reviewer
-    performance-reviewer
     data-integrity-auditor
   )
 
@@ -31,5 +36,5 @@ install_agents() {
     cp "$FORGE_ROOT/templates/agents/mcp-health-check.md" "$PROJECT/.claude/agents/mcp-health-check.md"
   fi
 
-  stop_spinner "Review-agenter installeret"
+  stop_spinner "Forge stack-agenter installeret"
 }

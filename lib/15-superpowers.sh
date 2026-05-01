@@ -54,6 +54,40 @@ prompt_agentic_discipline() {
   esac
 
   export INSTALL_SUPERPOWERS INSTALL_AGENTS
+
+  # v3.6.3: Forge's egne 3 generelle agents er fjernet — minimal setup giver
+  # ingen code-review/security/performance-dækning. Advarsel + bekræftelse.
+  warn_minimal_setup
+}
+
+# Advar når brugeren har valgt INGEN orchestration-features. Returnerer 0 hvis
+# brugeren bekræfter (eller ikke er i minimal setup), eller kalder prompten
+# igen hvis brugeren vil ændre valg.
+warn_minimal_setup() {
+  if [ "${INSTALL_SUPERPOWERS:-N}" != "N" ] || [ "${INSTALL_AGENTS:-none}" != "none" ]; then
+    return 0
+  fi
+
+  echo ""
+  echo "  ${YELLOW}⚠${RESET}  ${BOLD}Du har valgt ingen Superpowers og ingen curated agents.${RESET}"
+  echo "      Forge's egne agents dækker ikke længere code-review,"
+  echo "      security-audit eller performance — de er flyttet til"
+  echo "      Superpowers/awesome i v3.6.3."
+  echo ""
+  echo "      Du beholder kun stack-specifikke: frontend-reviewer,"
+  echo "      db-reviewer, data-integrity-auditor (+browser/MCP-health"
+  echo "      hvis Chrome/MCP er konfigureret)."
+  echo ""
+  echo "      Anbefaling: vælg mindst [3] Kun curated agents."
+  echo ""
+  printf "  Fortsæt alligevel med minimal setup? [y/N]: "
+  read MINIMAL_CONFIRM
+  MINIMAL_CONFIRM="${MINIMAL_CONFIRM:-N}"
+
+  if [[ "${MINIMAL_CONFIRM,,}" != "y" ]]; then
+    echo "  Lad os prøve igen."
+    prompt_agentic_discipline
+  fi
 }
 
 # Bash-versions-tjek. Plugin selv kører via Claude Code, men prompt-flow'en i

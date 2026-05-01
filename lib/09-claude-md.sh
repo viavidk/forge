@@ -65,7 +65,94 @@ Skills hentes automatisk ved opstart af Claude Code.
 MCPMD
   fi
 
+  # v3.6.3: Orkestrering (kun hvis Superpowers og/eller awesome-agents er valgt)
+  generate_orchestration_section
+
   stop_spinner "Claude-konfiguration genereret"
+}
+
+# Indsætter agent-orkestrerings-guide i CLAUDE.md når mindst ét orchestration-
+# system er aktivt. Forklarer "hvilken kilde ejer hvad" så Claude Code i
+# projektet ved hvilken agent der bruges hvornår.
+generate_orchestration_section() {
+  local has_sp="${INSTALL_SUPERPOWERS:-N}"
+  local has_ag="${INSTALL_AGENTS:-none}"
+
+  if [ "$has_sp" != "Y" ] && [ "$has_ag" = "none" ]; then
+    return 0
+  fi
+
+  cat >> "$PROJECT/CLAUDE.md" << 'ORCHEOF'
+
+## Agent-orkestrering
+
+Dette projekt bruger op til tre komplementære agent-systemer der ikke
+overlapper. Hver kilde ejer sit eget domæne — ingen dubletter, ingen
+modarbejdelse. Det er Forge v3.6.3's orkestreringsfilosofi.
+
+### Workflow-disciplin · **Superpowers**
+
+Aktiveres automatisk ved samtale-start (hvis valgt under scaffold). Tvinger
+Claude igennem en Clarify → Design → Plan → Code → Verify-flow før kode
+skrives. Levere disse skills og subagents:
+
+- `brainstorming` — Socratic spørgsmål før kode
+- `writing-plans` — TDD-strukturerede opgaver
+- `executing-plans` — Plan-eksekvering med checkpoints
+- `systematic-debugging` — 4-fase root-cause-analysis
+- `red-green-refactor` — TDD-disciplin
+- `code-reviewer` (subagent) — review mod planen efter implementation
+
+### Domain-ekspertise · **Curated awesome-agents**
+
+Kaldes eksplicit via `Task` tool når en bestemt opgave matcher. Specialister
+i generelle, sprog/stack-uafhængige domæner:
+
+- `code-reviewer` — generel code quality (erstatter Forge's tidligere)
+- `security-auditor` — OWASP, auth, secrets
+- `performance-engineer` — Web Vitals, bundle size, caching
+- `accessibility-tester` — WCAG 2.1, keyboard nav, screen reader
+- `php-pro` / `sql-pro` / `javascript-pro` / `api-designer` / m.fl.
+
+Tilgængelige via `forge agents list`/`search`/`update`.
+
+### Stack-specifik validering · **Forge agents**
+
+Kaldes når PHP/SQLite/Forge-konventioner er i spil. Disse er
+domænespecifikke for Forge's stack — generelle awesome-agents kender ikke
+SQLite WAL-mode, Tailwind-CDN-mønstret eller Forge's schema-konventioner.
+
+- `frontend-reviewer` — Tailwind + PHP partials, DESIGN.md-compliance
+- `db-reviewer` — SQLite WAL, FK-constraints, prepared statements
+- `data-integrity-auditor` — Forge schema, valuta/tidszoner ved API-data
+- `browser-tester` — Chrome DevTools MCP integration (kun hvis aktiveret)
+- `mcp-health-check` — Verifier Forge's MCP-config (kun hvis MCPs er sat op)
+
+### Hvornår bruger jeg hvad?
+
+| Situation | Agent / kilde |
+|---|---|
+| "Review denne PR" / "tjek koden" | Superpowers `code-reviewer` (auto efter plan) |
+| Ad-hoc code review uden Superpowers | awesome `code-reviewer` |
+| "Audit for sikkerhed" | awesome `security-auditor` |
+| "Optimér performance" / "Web Vitals" | awesome `performance-engineer` |
+| "Lav accessibility-audit" | awesome `accessibility-tester` |
+| "Tjek SQLite-skemaet" / "WAL-mode" | Forge `db-reviewer` |
+| "Verificer Tailwind + PHP partials" | Forge `frontend-reviewer` |
+| "Test i browseren" / E2E | Forge `browser-tester` |
+| "Tjek MCP-helbred" | Forge `mcp-health-check` |
+| "Er PHP-koden idiomatic?" | awesome `php-pro` |
+| "Optimér denne SQL-query" | awesome `sql-pro` |
+| Brainstorming før et nyt modul | Superpowers `brainstorming` |
+| Plan-skabelse | Superpowers `writing-plans` |
+| Debugging | Superpowers `systematic-debugging` |
+
+### Princippet
+
+Hvis du opdager dubletter (fx både Forge `code-reviewer.md` og awesome
+`code-reviewer.md`), kør `forge agents cleanup` i projektet. Forge ejer
+PHP-stack-specifikt — alt andet er Superpowers eller awesome.
+ORCHEOF
 }
 
 install_uiux_skill() {

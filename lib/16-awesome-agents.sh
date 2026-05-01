@@ -38,63 +38,59 @@ ensure_agents_cache() {
 # Curated lister pr. projekttype. Stier verificeret mod faktisk repo-struktur
 # (categories/<num>-<name>/<agent>.md). Forge-projekter er PHP/SQLite — derfor
 # php-pro og sql-pro overalt, ingen Node-specifikke agents som default.
+#
+# Orkestrering (v3.6.3): Baseline = code-reviewer + security-auditor +
+# performance-engineer fra awesome — disse erstatter Forge's tidligere
+# code-reviewer/security-auditor/performance-reviewer (slettet i v3.6.3).
+# Type-specifikke agents tilføjes oven på baseline.
 get_recommended_agents() {
+  # Baseline der ALTID installeres når INSTALL_AGENTS=recommended.
+  # Erstatter Forge's 3 dropped agents.
+  RECOMMENDED_AGENTS=(
+    "04-quality-security/code-reviewer"
+    "04-quality-security/security-auditor"
+    "04-quality-security/performance-engineer"
+  )
+
   case "${PROJECT_TYPE:-}" in
     dashboard)
-      RECOMMENDED_AGENTS=(
-        "04-quality-security/code-reviewer"
-        "04-quality-security/security-auditor"
-        "04-quality-security/performance-engineer"
+      RECOMMENDED_AGENTS+=(
         "04-quality-security/accessibility-tester"
         "02-language-specialists/php-pro"
         "02-language-specialists/sql-pro"
       )
       ;;
     internal)
-      RECOMMENDED_AGENTS=(
-        "04-quality-security/code-reviewer"
-        "04-quality-security/security-auditor"
+      RECOMMENDED_AGENTS+=(
         "04-quality-security/accessibility-tester"
         "04-quality-security/qa-expert"
         "02-language-specialists/php-pro"
-        "02-language-specialists/sql-pro"
       )
       ;;
     website)
-      RECOMMENDED_AGENTS=(
-        "04-quality-security/code-reviewer"
+      RECOMMENDED_AGENTS+=(
         "01-core-development/frontend-developer"
-        "04-quality-security/performance-engineer"
         "04-quality-security/accessibility-tester"
         "02-language-specialists/javascript-pro"
         "02-language-specialists/php-pro"
       )
       ;;
     ecommerce)
-      RECOMMENDED_AGENTS=(
-        "04-quality-security/code-reviewer"
+      RECOMMENDED_AGENTS+=(
         "01-core-development/frontend-developer"
-        "04-quality-security/security-auditor"
-        "04-quality-security/performance-engineer"
         "02-language-specialists/php-pro"
         "02-language-specialists/sql-pro"
       )
       ;;
     api)
-      RECOMMENDED_AGENTS=(
-        "04-quality-security/code-reviewer"
+      RECOMMENDED_AGENTS+=(
         "01-core-development/api-designer"
-        "04-quality-security/security-auditor"
-        "04-quality-security/performance-engineer"
         "02-language-specialists/php-pro"
         "02-language-specialists/sql-pro"
       )
       ;;
     *)
-      RECOMMENDED_AGENTS=(
-        "04-quality-security/code-reviewer"
-        "04-quality-security/security-auditor"
-      )
+      # Ingen ekstra — baseline alene
       ;;
   esac
 }
@@ -149,11 +145,15 @@ install_recommended_agents() {
   fi
 }
 
-# Subcommand: forge agents [list|update|search <ord>]
+# Subcommand: forge agents [list|update|search <ord>|cleanup [--apply]]
 forge_agents_command() {
   local sub="${1:-}" arg="${2:-}"
 
   case "$sub" in
+    cleanup)
+      forge_agents_cleanup "$arg"
+      return $?
+      ;;
     list)
       ensure_agents_cache || return 1
       echo ""
@@ -209,6 +209,8 @@ forge_agents_command() {
     forge agents list             List alle kategorier
     forge agents update           Opdatér cache fra GitHub
     forge agents search <ord>     Find en agent ved navn
+    forge agents cleanup          Detektér v3.6.2 agent-dubletter (dry-run)
+    forge agents cleanup --apply  Slet Forge's gamle dublerede agents
 
   Cache: $AGENTS_CACHE
   Kilde: https://github.com/VoltAgent/awesome-claude-code-subagents
@@ -216,4 +218,88 @@ forge_agents_command() {
 EOF
       ;;
   esac
+}
+
+# v3.6.3 migration: detektér og slet Forge's tidligere code-reviewer/
+# security-auditor/performance-reviewer som overlapper med awesome.
+# Forge-versionerne har en specifik signature i fil-headeren — det er
+# sådan vi adskiller dem fra awesome-versioner med samme navn.
+forge_agents_cleanup() {
+  local mode="${1:-}"
+  local target="${PWD}/.claude/agents"
+
+  if [ ! -d "$target" ]; then
+    echo "  ⚠  Ingen .claude/agents/ i denne mappe. Cleanup forudsætter et"
+    echo "      Forge-projekt — kør kommandoen fra projektets rod."
+    return 1
+  fi
+
+  # De 3 navne der potentielt har Forge-versioner fra v3.6.2 og tidligere.
+  # performance-engineer er awesome's variant — Forge hed performance-reviewer.
+  local check_names=("code-reviewer" "security-auditor" "performance-reviewer")
+
+  local detected=()
+  for name in "${check_names[@]}"; do
+    local f="$target/${name}.md"
+    [ -f "$f" ] || continue
+    # Forge's egne agents er identificerbare via PHP-stack-references i
+    # frontmatter description og body. Awesome-versioner er generiske.
+    if grep -qE "PHP code (quality )?reviewer|vulnerabilities in PHP|PHP I/O|Strict PHP|reviewer\..*PHP|PHP-specific|code-style\.md" "$f" 2>/dev/null; then
+      detected+=("$name")
+    fi
+  done
+
+  if [ "${#detected[@]}" -eq 0 ]; then
+    echo ""
+    echo "  ✓ Ingen dublerede Forge-agents fundet i $target"
+    echo "    Projektet er allerede orkestreringskonformt."
+    echo ""
+    return 0
+  fi
+
+  echo ""
+  echo "  ${BOLD}Detekterede dubletter:${RESET}"
+  for name in "${detected[@]}"; do
+    echo "    ⚠  $target/$name.md (Forge-version) overlapper med awesome's $name"
+  done
+  echo ""
+  echo "  I v3.6.3 ejer awesome generel code/security/performance-review."
+  echo "  Forge ejer kun stack-specifikke agents (frontend-reviewer,"
+  echo "  db-reviewer, data-integrity-auditor + browser-tester/mcp-health-check)."
+  echo ""
+
+  if [ "$mode" != "--apply" ]; then
+    echo "  Anbefaling: kør ${BOLD}forge agents cleanup --apply${RESET} for at slette"
+    echo "  Forge-versionerne. Awesome-versionerne installeres næste gang du"
+    echo "  scaffolder med ${BOLD}INSTALL_AGENTS=recommended${RESET}, eller hent dem manuelt:"
+    echo "    forge agents search code-reviewer"
+    echo ""
+    return 0
+  fi
+
+  # --apply: bekræft før destruktiv handling
+  echo "  ${YELLOW}Følgende filer slettes:${RESET}"
+  for name in "${detected[@]}"; do
+    echo "    rm $target/$name.md"
+  done
+  echo ""
+  printf "  Fortsæt? [y/N]: "
+  read CONFIRM
+  CONFIRM="${CONFIRM:-N}"
+
+  if [[ "${CONFIRM,,}" != "y" ]]; then
+    echo "  Annulleret. Ingen filer slettet."
+    return 0
+  fi
+
+  for name in "${detected[@]}"; do
+    rm -f "$target/$name.md"
+    echo "  ✓ Slettet $name.md"
+  done
+
+  echo ""
+  echo "  ${GREEN}Cleanup færdig.${RESET} ${#detected[@]} Forge-agents fjernet."
+  echo "  Hent awesome-erstatninger med: forge agents search <navn>"
+  echo ""
+  return 0
 }

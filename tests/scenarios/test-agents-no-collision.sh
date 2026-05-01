@@ -1,6 +1,7 @@
 #!/bin/bash
-# Test: Forge's egne agents (code-reviewer fra templates/agents/) overskrives
-# IKKE af awesome-versionen — Forge-versionen vinder.
+# Test: install_recommended_agents bruger cp -n — eksisterende agent-filer
+# overskrives ikke. v3.6.3: Forge ejer kun stack-specifikke agents, så vi
+# tester med frontend-reviewer (som stadig er en Forge-template).
 set -e
 
 FORGE_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -17,15 +18,16 @@ for lib in "$FORGE_ROOT/lib/"*.sh; do source "$lib"; done
 
 mkdir -p "$PROJECT/.claude/agents"
 
-# Læg en sentinel som "Forge's egen code-reviewer"
-echo "FORGE-MARKER" > "$PROJECT/.claude/agents/code-reviewer.md"
+# Sentinel: hvis brugeren har en custom code-reviewer.md (fx fra awesome-cache),
+# må install_recommended_agents IKKE overskrive den.
+echo "USER-CUSTOM-MARKER" > "$PROJECT/.claude/agents/code-reviewer.md"
 
 install_recommended_agents >/dev/null 2>&1 || true
 
-# Sentinel skal stadig være der — awesome-versionen må ikke overskrive
-if ! grep -q "FORGE-MARKER" "$PROJECT/.claude/agents/code-reviewer.md"; then
-  echo "FAIL: awesome code-reviewer overskrev Forge's version"
+# Sentinel skal stadig være der — cp -n stopper overwrite
+if ! grep -q "USER-CUSTOM-MARKER" "$PROJECT/.claude/agents/code-reviewer.md"; then
+  echo "FAIL: install_recommended_agents overskrev eksisterende code-reviewer.md"
   exit 1
 fi
 
-echo "PASS: agents-no-collision — Forge's egne agents bevares"
+echo "PASS: agents-no-collision — cp -n bevarer eksisterende agent-filer"

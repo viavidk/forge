@@ -103,14 +103,18 @@ EH
 }
 
 _whp_awesome_agents_section() {
-  case "${INSTALL_AGENTS:-none}" in
-    recommended|custom) ;;
-    *) return 0 ;;
-  esac
+  # v3.6.3: 3-kolonners orchestration-grid (Workflow / Domain / Stack)
+  # Vises hvis MINDST ÉT af de 3 systemer er aktivt.
+  local has_sp="${INSTALL_SUPERPOWERS:-N}"
+  local has_ag="${INSTALL_AGENTS:-none}"
+  if [ "$has_sp" != "Y" ] && [ "$has_ag" = "none" ]; then
+    return 0
+  fi
 
-  # Find faktisk installerede curated agents (dem der ikke matcher Forge's egne)
-  local forge_owned=("code-reviewer" "security-auditor" "frontend-reviewer" "db-reviewer" "performance-reviewer" "data-integrity-auditor" "browser-tester" "mcp-health-check")
-  local installed=()
+  # Find faktisk installerede awesome (curated) agents.
+  # Forge's stack-agents v3.6.3: 3 base + browser-tester/mcp-health-check (cond.)
+  local forge_owned=("frontend-reviewer" "db-reviewer" "data-integrity-auditor" "browser-tester" "mcp-health-check")
+  local awesome_installed=()
   if [ -d "$PROJECT/.claude/agents" ]; then
     for f in "$PROJECT"/.claude/agents/*.md; do
       [ -f "$f" ] || continue
@@ -119,49 +123,107 @@ _whp_awesome_agents_section() {
       for fo in "${forge_owned[@]}"; do
         [ "$name" = "$fo" ] && is_forge=1 && break
       done
-      [ "$is_forge" = 0 ] && installed+=("$name")
+      [ "$is_forge" = 0 ] && awesome_installed+=("$name")
     done
   fi
 
-  [ "${#installed[@]}" -gt 0 ] || return 0
-
-  cat <<EH
+  cat <<'EH'
 <div class="div"></div>
 
-<!-- AWESOME AGENTS -->
-<section class="sec fu2" id="awesome-agents">
-  <span class="sec-tag" style="color:#38BDF8">Curated awesome-agents</span>
-  <h2 class="sec-h2">${#installed[@]} domain-eksperter ved siden af.</h2>
-  <p class="sec-lead">Hentet fra <span class="mono">VoltAgent/awesome-claude-code-subagents</span> &mdash; specialiseret per opgavetype. K&oslash;r <span class="mono">forge agents list</span> for at se alle 100+ tilg&aelig;ngelige.</p>
+<!-- AGENT ORCHESTRATION (v3.6.3) -->
+<section class="sec fu2" id="orchestration">
+  <span class="sec-tag" style="color:#a78bfa">Agent-orkestrering</span>
+  <h2 class="sec-h2">Tre kilder. Ingen dubletter.</h2>
+  <p class="sec-lead">Hver kilde ejer sit dom&aelig;ne. Superpowers styrer workflow-disciplin, awesome leverer generel domain-ekspertise, Forge giver stack-specifik validering. Ingen overlap, ingen modarbejdelse.</p>
 
-  <div style="margin-top:36px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">
+  <div class="orchestration-grid" style="margin-top:36px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
 EH
-  for name in "${installed[@]}"; do
-    local desc=""
-    case "$name" in
-      php-pro)              desc="Modern PHP 8+ &middot; framework patterns" ;;
-      sql-pro)              desc="Query-optimering &middot; indexering &middot; schema" ;;
-      javascript-pro)       desc="Modern JS &middot; ES2020+ &middot; async patterns" ;;
-      typescript-pro)       desc="Strict typing &middot; generics &middot; type safety" ;;
-      api-designer)         desc="REST &middot; GraphQL &middot; versioning" ;;
-      frontend-developer)   desc="Component arkitektur &middot; tilgængelighed" ;;
-      accessibility-tester) desc="WCAG 2.1 &middot; keyboard nav &middot; screen reader" ;;
-      performance-engineer) desc="LCP &middot; CLS &middot; bundle size &middot; caching" ;;
-      qa-expert)            desc="Test-strategi &middot; coverage &middot; regression" ;;
-      *)                    desc="Specialist agent" ;;
-    esac
-    cat <<EH2
-    <div style="background:var(--surface);border:1px solid var(--bd);border-radius:10px;padding:14px 16px">
-      <div style="font-family:'Geist Mono',monospace;font-size:12px;color:#38BDF8;font-weight:500;margin-bottom:4px">${name}</div>
-      <div style="font-size:11px;color:var(--ts);line-height:1.55">${desc}</div>
+
+  # === KOLONNE 1: Workflow (Superpowers) ===
+  if [ "$has_sp" = "Y" ]; then
+    cat <<'EH'
+    <div class="orch-card" style="background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(167,139,250,.02));border:1px solid rgba(167,139,250,.3);border-radius:12px;padding:20px 22px">
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#a78bfa;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">Kolonne 1</div>
+      <h4 style="font-size:15px;font-weight:600;color:var(--tp);margin-bottom:4px">Workflow</h4>
+      <div style="font-size:11px;color:var(--tm);font-family:'Geist Mono',monospace;margin-bottom:14px">Superpowers</div>
+      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">brainstorming</li>
+        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">writing-plans</li>
+        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">executing-plans</li>
+        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">systematic-debugging</li>
+        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">red-green-refactor</li>
+        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:#a78bfa">code-reviewer (subagent)</li>
+      </ul>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(167,139,250,.2);font-size:11px;color:var(--tm);line-height:1.55">Auto-aktiveres ved samtale-start. Tvinger Clarify &rarr; Design &rarr; Plan &rarr; Code &rarr; Verify.</div>
     </div>
+EH
+  else
+    cat <<'EH'
+    <div class="orch-card" style="background:var(--surface);border:1px dashed var(--bd);border-radius:12px;padding:20px 22px;opacity:.6">
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">Kolonne 1</div>
+      <h4 style="font-size:15px;font-weight:600;color:var(--ts);margin-bottom:4px">Workflow</h4>
+      <div style="font-size:11px;color:var(--tm);font-family:'Geist Mono',monospace;margin-bottom:14px">Superpowers (ikke valgt)</div>
+      <div style="font-size:12px;color:var(--tm);line-height:1.55">Workflow-disciplin er ikke aktiveret. Du kan tilføje senere via <span class="mono">.claude/settings.json</span>.</div>
+    </div>
+EH
+  fi
+
+  # === KOLONNE 2: Domain (Awesome) ===
+  if [ "$has_ag" != "none" ] && [ "${#awesome_installed[@]}" -gt 0 ]; then
+    cat <<EH
+    <div class="orch-card" style="background:linear-gradient(135deg,rgba(56,189,248,.08),rgba(56,189,248,.02));border:1px solid rgba(56,189,248,.3);border-radius:12px;padding:20px 22px">
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#38BDF8;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">Kolonne 2</div>
+      <h4 style="font-size:15px;font-weight:600;color:var(--tp);margin-bottom:4px">Domain</h4>
+      <div style="font-size:11px;color:var(--tm);font-family:'Geist Mono',monospace;margin-bottom:14px">Awesome (${#awesome_installed[@]})</div>
+      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+EH
+    for name in "${awesome_installed[@]}"; do
+      cat <<EH2
+        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">${name}</li>
 EH2
-  done
+    done
+    cat <<'EH'
+      </ul>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(56,189,248,.2);font-size:11px;color:var(--tm);line-height:1.55">Generel domain-ekspertise. Kald via <span class="mono" style="font-size:10px">Task</span> tool. Tilføj flere: <span class="mono" style="font-size:10px">forge agents search</span>.</div>
+    </div>
+EH
+  else
+    cat <<'EH'
+    <div class="orch-card" style="background:var(--surface);border:1px dashed var(--bd);border-radius:12px;padding:20px 22px;opacity:.6">
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">Kolonne 2</div>
+      <h4 style="font-size:15px;font-weight:600;color:var(--ts);margin-bottom:4px">Domain</h4>
+      <div style="font-size:11px;color:var(--tm);font-family:'Geist Mono',monospace;margin-bottom:14px">Awesome (ikke valgt)</div>
+      <div style="font-size:12px;color:var(--tm);line-height:1.55">Curated awesome-agents er ikke installeret. Kør <span class="mono">forge agents list</span> for at udforske 100+ tilg&aelig;ngelige.</div>
+    </div>
+EH
+  fi
+
+  # === KOLONNE 3: Stack (Forge) — altid med, da Forge installerer 3 base ===
+  cat <<'EH'
+    <div class="orch-card" style="background:linear-gradient(135deg,rgba(124,106,240,.08),rgba(124,106,240,.02));border:1px solid rgba(124,106,240,.3);border-radius:12px;padding:20px 22px">
+      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--brand);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">Kolonne 3</div>
+      <h4 style="font-size:15px;font-weight:600;color:var(--tp);margin-bottom:4px">Stack</h4>
+      <div style="font-size:11px;color:var(--tm);font-family:'Geist Mono',monospace;margin-bottom:14px">Forge (PHP/SQLite)</div>
+      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">frontend-reviewer</li>
+        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">db-reviewer</li>
+        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">data-integrity-auditor</li>
+EH
+  [ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ] && echo '        <li style="font-family:'\''Geist Mono'\'',monospace;font-size:12px;color:var(--ts)">browser-tester</li>'
+  if [ "${USE_VIAVI_SKILLS:-N}" = "Y" ] || [ "${USE_CONTEXT7:-N}" = "Y" ] || [ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ]; then
+    echo '        <li style="font-family:'\''Geist Mono'\'',monospace;font-size:12px;color:var(--ts)">mcp-health-check</li>'
+  fi
+  cat <<'EH'
+      </ul>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(124,106,240,.2);font-size:11px;color:var(--tm);line-height:1.55">PHP/SQLite-specifik validering. Tailwind CDN, WAL-mode, Forge-schema, Forge MCP-config.</div>
+    </div>
+EH
+
   cat <<'EH'
   </div>
 
-  <div style="margin-top:18px;background:rgba(56,189,248,.05);border:1px solid rgba(56,189,248,.18);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--ts);line-height:1.7">
-    <strong style="color:#38BDF8">Forge's egne agents bevares uændret.</strong> Disse domain-eksperter installeres ved siden af i samme <span class="mono">.claude/agents/</span>-mappe. Hvis du vil tilføje flere: <span class="mono">forge agents search &lt;ord&gt;</span> og kopier den ønskede <span class="mono">.md</span>-fil ind i mappen.
+  <div style="margin-top:18px;background:rgba(167,139,250,.04);border:1px solid rgba(167,139,250,.15);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--ts);line-height:1.7">
+    <strong style="color:#a78bfa">Princippet:</strong> Hvis du opdager dubletter, kør <span class="mono">forge agents cleanup</span> i projektet. Forge ejer PHP-stack-specifikt &mdash; alt andet er Superpowers eller awesome.
   </div>
 </section>
 EH
@@ -566,18 +628,11 @@ $(_whp_superpowers_section)
 
 <!-- AGENTER -->
 <section class="sec fu2" id="agenter">
-  <span class="sec-tag">Review-agenter</span>
-  <h2 class="sec-h2">8 Forge-specialister. Ingen blinde vinkler.</h2>
-  <p class="sec-lead">Kode, frontend, database, performance, browser og MCP-helbred kører parallelt. Én CRITICAL-finding blokerer al videre progress.</p>
+  <span class="sec-tag">Stack-specifikke agents</span>
+  <h2 class="sec-h2">PHP/SQLite-specialister. Forge-domæne.</h2>
+  <p class="sec-lead">Frontend (Tailwind+PHP partials), database (SQLite WAL), data-integritet (Forge schema), browser (Chrome MCP) og MCP-helbred. Hver én ejer sit dom&aelig;ne &mdash; ingen overlap med Superpowers eller awesome.</p>
 
   <div class="agents">
-    <div class="agent-row">
-      <div class="agent-left">
-        <div class="agent-name">code-reviewer</div>
-        <div class="agent-scope">PHP &middot; MVC &middot; PSR-12</div>
-      </div>
-      <div class="agent-right">Kode-kvalitet, struktur og vedligeholdbarhed. Referencer <span class="mono" style="margin:0 3px">code-style.md</span> på hvert fund.</div>
-    </div>
     <div class="agent-row">
       <div class="agent-left">
         <div class="agent-name">frontend-reviewer</div>
@@ -588,23 +643,9 @@ $(_whp_superpowers_section)
     <div class="agent-row">
       <div class="agent-left">
         <div class="agent-name">db-reviewer</div>
-        <div class="agent-scope">SQLite &middot; Schema &middot; N+1</div>
+        <div class="agent-scope">SQLite &middot; Schema &middot; WAL</div>
       </div>
       <div class="agent-right">Schema-design, prepared statements, WAL-mode og FK-constraints. N+1-queries flagges som CRITICAL.</div>
-    </div>
-    <div class="agent-row">
-      <div class="agent-left">
-        <div class="agent-name">performance-reviewer</div>
-        <div class="agent-scope">PHP I/O &middot; Cache &middot; HTTP</div>
-      </div>
-      <div class="agent-right">PHP I/O i loops, manglende cache-headers og resource-håndtering. PHP må aldrig proxy'e statiske filer &mdash; CRITICAL.</div>
-    </div>
-    <div class="agent-row">
-      <div class="agent-left" style="background:rgba(232,121,160,.05)">
-        <div class="agent-name" style="color:var(--accent)">security-auditor</div>
-        <div class="agent-scope">Kører sidst &middot; blokkerer</div>
-      </div>
-      <div class="agent-right">SQL-injection, XSS, CSRF, auth, session-flags, secrets, DOM XSS, CORS og brute-force. Én CRITICAL stopper alt.</div>
     </div>
     <div class="agent-row" style="border-color:rgba(16,185,129,.3)">
       <div class="agent-left" style="background:rgba(16,185,129,.06)">
