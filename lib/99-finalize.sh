@@ -118,16 +118,14 @@ EH
 }
 
 _whp_awesome_agents_section() {
-  # v3.6.3: 3-kolonners orchestration-grid (Workflow / Domain / Stack)
-  # Vises hvis MINDST ÉT af de 3 systemer er aktivt.
+  # v3.6.5: Capability-pills — hvad Claude kan, ikke hvorfra det kommer.
   local has_sp="${INSTALL_SUPERPOWERS:-N}"
   local has_ag="${INSTALL_AGENTS:-none}"
   if [ "$has_sp" != "Y" ] && [ "$has_ag" = "none" ]; then
     return 0
   fi
 
-  # Find faktisk installerede awesome (curated) agents.
-  # Forge's stack-agents v3.6.3: 3 base + browser-tester/mcp-health-check (cond.)
+  # Find faktisk installerede awesome (curated) agents
   local forge_owned=("frontend-reviewer" "db-reviewer" "data-integrity-auditor" "browser-tester" "mcp-health-check")
   local awesome_installed=()
   if [ -d "$PROJECT/.claude/agents" ]; then
@@ -142,103 +140,52 @@ _whp_awesome_agents_section() {
     done
   fi
 
-  cat <<'EH'
+  # Tæl alle installerede capabilities
+  local total=0
+  [ "$has_sp" = "Y" ] && total=$((total + 6))
+  total=$((total + ${#awesome_installed[@]}))
+  total=$((total + 3))
+  [ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ] && total=$((total + 1))
+  if [ "${USE_VIAVI_SKILLS:-N}" = "Y" ] || [ "${USE_CONTEXT7:-N}" = "Y" ] || [ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ]; then
+    total=$((total + 1))
+  fi
+
+  cat <<EH
 <div class="div"></div>
 
-<!-- AGENT ORCHESTRATION (v3.6.3) -->
-<section class="sec fu2" id="orchestration">
-  <span class="sec-tag" style="color:#a78bfa">Agent-orkestrering</span>
-  <h2 class="sec-h2">Tre kilder. Ingen dubletter.</h2>
-  <p class="sec-lead">Hver kilde ejer sit dom&aelig;ne. Superpowers styrer workflow-disciplin, awesome leverer generel domain-ekspertise, Forge giver stack-specifik validering. Ingen overlap, ingen modarbejdelse.</p>
+<!-- AI-CAPABILITIES (v3.6.5) -->
+<section class="sec fu2" id="capabilities">
+  <span class="sec-tag" style="color:#a78bfa">AI-capabilities</span>
+  <h2 class="sec-h2">Klar til første prompt.</h2>
+  <p class="sec-lead">${total} capabilities installeret og konfigureret. Skriv hvad du vil bygge &mdash; Claude bruger dem automatisk.</p>
 
-  <div class="orchestration-grid" style="margin-top:36px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+  <div style="margin-top:28px;display:flex;flex-wrap:wrap;gap:8px">
 EH
 
-  # === KOLONNE 1: Workflow (Superpowers) ===
+  # Workflow-pills (Superpowers)
   if [ "$has_sp" = "Y" ]; then
-    cat <<'EH'
-    <div class="orch-card" style="background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(167,139,250,.02));border:1px solid rgba(167,139,250,.3);border-radius:12px;padding:20px 22px">
-      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#a78bfa;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">Kolonne 1</div>
-      <h4 style="font-size:15px;font-weight:600;color:var(--tp);margin-bottom:4px">Workflow</h4>
-      <div style="font-size:11px;color:var(--tm);font-family:'Geist Mono',monospace;margin-bottom:14px">Superpowers</div>
-      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
-        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">brainstorming</li>
-        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">writing-plans</li>
-        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">executing-plans</li>
-        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">systematic-debugging</li>
-        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">red-green-refactor</li>
-        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:#a78bfa">code-reviewer (subagent)</li>
-      </ul>
-      <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(167,139,250,.2);font-size:11px;color:var(--tm);line-height:1.55">Auto-aktiveres ved samtale-start. Tvinger Clarify &rarr; Design &rarr; Plan &rarr; Code &rarr; Verify.</div>
-    </div>
-EH
-  else
-    cat <<'EH'
-    <div class="orch-card" style="background:var(--surface);border:1px dashed var(--bd);border-radius:12px;padding:20px 22px;opacity:.6">
-      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">Kolonne 1</div>
-      <h4 style="font-size:15px;font-weight:600;color:var(--ts);margin-bottom:4px">Workflow</h4>
-      <div style="font-size:11px;color:var(--tm);font-family:'Geist Mono',monospace;margin-bottom:14px">Superpowers (ikke valgt)</div>
-      <div style="font-size:12px;color:var(--tm);line-height:1.55">Workflow-disciplin er ikke aktiveret. Du kan tilføje senere via <span class="mono">.claude/settings.json</span>.</div>
-    </div>
-EH
-  fi
-
-  # === KOLONNE 2: Domain (Awesome) ===
-  if [ "$has_ag" != "none" ] && [ "${#awesome_installed[@]}" -gt 0 ]; then
-    cat <<EH
-    <div class="orch-card" style="background:linear-gradient(135deg,rgba(56,189,248,.08),rgba(56,189,248,.02));border:1px solid rgba(56,189,248,.3);border-radius:12px;padding:20px 22px">
-      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:#38BDF8;text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">Kolonne 2</div>
-      <h4 style="font-size:15px;font-weight:600;color:var(--tp);margin-bottom:4px">Domain</h4>
-      <div style="font-size:11px;color:var(--tm);font-family:'Geist Mono',monospace;margin-bottom:14px">Awesome (${#awesome_installed[@]})</div>
-      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
-EH
-    for name in "${awesome_installed[@]}"; do
-      cat <<EH2
-        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">${name}</li>
-EH2
+    for cap in "brainstorming" "writing-plans" "executing-plans" "systematic-debugging" "red-green-refactor" "code-review (auto)"; do
+      echo "    <span style=\"background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);border-radius:20px;padding:5px 13px;font-family:'Geist Mono',monospace;font-size:11px;color:#a78bfa\">${cap}</span>"
     done
-    cat <<'EH'
-      </ul>
-      <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(56,189,248,.2);font-size:11px;color:var(--tm);line-height:1.55">Generel domain-ekspertise. Kald via <span class="mono" style="font-size:10px">Task</span> tool. Tilføj flere: <span class="mono" style="font-size:10px">forge agents search</span>.</div>
-    </div>
-EH
-  else
-    cat <<'EH'
-    <div class="orch-card" style="background:var(--surface);border:1px dashed var(--bd);border-radius:12px;padding:20px 22px;opacity:.6">
-      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">Kolonne 2</div>
-      <h4 style="font-size:15px;font-weight:600;color:var(--ts);margin-bottom:4px">Domain</h4>
-      <div style="font-size:11px;color:var(--tm);font-family:'Geist Mono',monospace;margin-bottom:14px">Awesome (ikke valgt)</div>
-      <div style="font-size:12px;color:var(--tm);line-height:1.55">Curated awesome-agents er ikke installeret. Kør <span class="mono">forge agents list</span> for at udforske 100+ tilg&aelig;ngelige.</div>
-    </div>
-EH
   fi
 
-  # === KOLONNE 3: Stack (Forge) — altid med, da Forge installerer 3 base ===
-  cat <<'EH'
-    <div class="orch-card" style="background:linear-gradient(135deg,rgba(124,106,240,.08),rgba(124,106,240,.02));border:1px solid rgba(124,106,240,.3);border-radius:12px;padding:20px 22px">
-      <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--brand);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px">Kolonne 3</div>
-      <h4 style="font-size:15px;font-weight:600;color:var(--tp);margin-bottom:4px">Stack</h4>
-      <div style="font-size:11px;color:var(--tm);font-family:'Geist Mono',monospace;margin-bottom:14px">Forge (PHP/SQLite)</div>
-      <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
-        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">frontend-reviewer</li>
-        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">db-reviewer</li>
-        <li style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ts)">data-integrity-auditor</li>
-EH
-  [ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ] && echo '        <li style="font-family:'\''Geist Mono'\'',monospace;font-size:12px;color:var(--ts)">browser-tester</li>'
+  # Awesome-pills
+  for name in "${awesome_installed[@]}"; do
+    echo "    <span style=\"background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.22);border-radius:20px;padding:5px 13px;font-family:'Geist Mono',monospace;font-size:11px;color:#38BDF8\">${name}</span>"
+  done
+
+  # Stack-pills (Forge, altid)
+  for cap in "frontend-reviewer" "db-reviewer" "data-integrity-auditor"; do
+    echo "    <span style=\"background:rgba(124,106,240,.1);border:1px solid rgba(124,106,240,.25);border-radius:20px;padding:5px 13px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--brand)\">${cap}</span>"
+  done
+  if [ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ]; then
+    echo "    <span style=\"background:rgba(124,106,240,.1);border:1px solid rgba(124,106,240,.25);border-radius:20px;padding:5px 13px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--brand)\">browser-tester</span>"
+  fi
   if [ "${USE_VIAVI_SKILLS:-N}" = "Y" ] || [ "${USE_CONTEXT7:-N}" = "Y" ] || [ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ]; then
-    echo '        <li style="font-family:'\''Geist Mono'\'',monospace;font-size:12px;color:var(--ts)">mcp-health-check</li>'
+    echo "    <span style=\"background:rgba(124,106,240,.1);border:1px solid rgba(124,106,240,.25);border-radius:20px;padding:5px 13px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--brand)\">mcp-health-check</span>"
   fi
-  cat <<'EH'
-      </ul>
-      <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(124,106,240,.2);font-size:11px;color:var(--tm);line-height:1.55">PHP/SQLite-specifik validering. Tailwind CDN, WAL-mode, Forge-schema, Forge MCP-config.</div>
-    </div>
-EH
 
   cat <<'EH'
-  </div>
-
-  <div style="margin-top:18px;background:rgba(167,139,250,.04);border:1px solid rgba(167,139,250,.15);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--ts);line-height:1.7">
-    <strong style="color:#a78bfa">Princippet:</strong> Hvis du opdager dubletter, kør <span class="mono">forge agents cleanup</span> i projektet. Forge ejer PHP-stack-specifikt &mdash; alt andet er Superpowers eller awesome.
   </div>
 </section>
 EH
@@ -445,12 +392,11 @@ footer a:hover{color:var(--tp)}
     </div>
     <div class="prompt-box">
       <button class="prompt-copy" onclick="copyPrompt(this)">Kopiér</button>
-      <p class="prompt-text">Læs CLAUDE.md, DESIGN.md og .claude/-mappen f&oslash;rst &mdash; bekr&aelig;ft du forst&aring;r stack, agent-orkestrering og designsystem.
+      <p class="prompt-text">Læs CLAUDE.md og DESIGN.md &mdash; bekr&aelig;ft du forst&aring;r projektet og designsystemet.
 
 Vi skal bygge <span class="prompt-hl">[beskriv hvad systemet skal g&oslash;re]</span>
 
-Login og brugeradministration er allerede sat op af Forge.
-F&oslash;lg orkestreringen i CLAUDE.md: Superpowers-flow for nye moduler, awesome-agents til generel kvalitet, Forge stack-agents til PHP/SQLite-specifikke valideringer.</p>
+Login og brugeradministration er allerede sat op af Forge.</p>
     </div>
   </div>
 
@@ -814,7 +760,7 @@ document.querySelectorAll('.fu2').forEach(function(el,i){
 });
 
 function copyPrompt(btn){
-  var text="Læs CLAUDE.md, DESIGN.md og .claude/-mappen først — bekræft du forstår stack, agent-orkestrering og designsystem.\n\nVi skal bygge [beskriv hvad systemet skal gøre]\n\nLogin og brugeradministration er allerede sat op af Forge.\nFølg orkestreringen i CLAUDE.md: Superpowers-flow for nye moduler, awesome-agents til generel kvalitet, Forge stack-agents til PHP/SQLite-specifikke valideringer.";
+  var text="Læs CLAUDE.md og DESIGN.md — bekræft du forstår projektet og designsystemet.\n\nVi skal bygge [beskriv hvad systemet skal gøre]\n\nLogin og brugeradministration er allerede sat op af Forge.";
   navigator.clipboard.writeText(text).then(function(){flashOk(btn);});
 }
 function copyLine(btn,text){

@@ -23,7 +23,7 @@ show_help() {
   echo ""
   echo "  Brug:"
   echo "    forge                  Hurtigt mode (2 spørgsmål)"
-  echo "    forge --guided         Guided mode (9 trin)"
+  echo "    forge --guided         Guided mode (8 trin)"
   echo "    forge --advanced       Avanceret mode (alle valg)"
   echo "    forge update           Opdatér Forge fra GitHub"
   echo "    forge agents [list|update|search <ord>]"
@@ -179,13 +179,10 @@ prompt_design_source
 prompt_mcps
 prompt_viavi_token
 
-# ---------------------------------------------------------------------------
-# Trin 8 — Agentic disciplin (Superpowers + curated agents)
-# ---------------------------------------------------------------------------
-prompt_agentic_discipline
+prompt_agentic_discipline   # Sætter INSTALL_SUPERPOWERS + INSTALL_AGENTS (fuld pakke, stille)
 
 # ---------------------------------------------------------------------------
-# Trin 9 — Konfliktvalidering
+# Trin 8 — Konfliktvalidering
 # ---------------------------------------------------------------------------
 validate_no_conflicts
 
