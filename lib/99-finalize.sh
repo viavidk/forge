@@ -191,6 +191,54 @@ EH
 EH
 }
 
+_whp_hooks_section() {
+  cat <<'EH'
+<div class="div"></div>
+
+<!-- AUTOMATISKE HOOKS (v3.6.6) -->
+<section class="sec fu2" id="hooks">
+  <span class="sec-tag" style="color:#34D399">Automatiske checks</span>
+  <h2 class="sec-h2">Altid aktive.<br>Ingen handling krævet.</h2>
+  <p class="sec-lead">Forge installerer hooks der kører i baggrunden. Claude fanger fejl i realtid, advares ved sikkerhedskritiske ændringer og blokeres fra at committe fejlbehæftet kode.</p>
+
+  <div style="margin-top:36px;display:flex;flex-direction:column;gap:12px">
+
+    <div style="background:linear-gradient(135deg,rgba(52,211,153,.08),rgba(52,211,153,.02));border:1px solid rgba(52,211,153,.3);border-radius:12px;padding:20px 24px;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start">
+      <div style="font-size:20px;margin-top:2px">⚡</div>
+      <div>
+        <div style="font-weight:600;color:var(--tp);margin-bottom:4px">PHP-validering i realtid</div>
+        <div style="font-size:13px;color:var(--ts);line-height:1.65">Hvert .php-fil syntaks-tjekkes straks efter gem. Fejlen sendes direkte til Claude som context &mdash; Claude retter den <em>inden du ser det næste svar</em>.</div>
+        <div style="margin-top:8px;font-family:'Geist Mono',monospace;font-size:11px;color:#34D399">PostToolUse: Write|Edit &rarr; php -l &rarr; additionalContext til Claude</div>
+      </div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,rgba(232,121,160,.08),rgba(232,121,160,.02));border:1px solid rgba(232,121,160,.3);border-radius:12px;padding:20px 24px;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start">
+      <div style="font-size:20px;margin-top:2px">🔐</div>
+      <div>
+        <div style="font-weight:600;color:var(--tp);margin-bottom:4px">Security &amp; DB-notifikationer</div>
+        <div style="font-size:13px;color:var(--ts);line-height:1.65">Auth/login/session-filer trigge automatisk en advarsel til Claude der opfordrer til security-audit. Schema-ændringer trigge db-reviewer-anbefaling. Claude handler proaktivt.</div>
+        <div style="margin-top:8px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--accent)">PostToolUse: auth/login/schema &rarr; NOTICE til Claude &rarr; proaktiv review</div>
+      </div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,rgba(56,189,248,.08),rgba(56,189,248,.02));border:1px solid rgba(56,189,248,.3);border-radius:12px;padding:20px 24px;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start">
+      <div style="font-size:20px;margin-top:2px">🚫</div>
+      <div>
+        <div style="font-weight:600;color:var(--tp);margin-bottom:4px">Commit-gate</div>
+        <div style="font-size:13px;color:var(--ts);line-height:1.65">Staged PHP-filer valideres f&oslash;r <span class="mono">git commit</span> k&oslash;rer. Syntaksfejl blokerer commit'et automatisk og Claude ser blokeringsgrunden &mdash; den retter og fors&oslash;ger igen.</div>
+        <div style="margin-top:8px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--accent2)">PreToolUse: git commit &rarr; php -l staged &rarr; deny hvis fejl</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:16px;background:rgba(52,211,153,.04);border:1px solid rgba(52,211,153,.15);border-radius:10px;padding:13px 18px;font-size:12px;color:var(--ts);line-height:1.7">
+    Hooks ligger i <span class="mono">.claude/hooks/</span> og er committed til projektet &mdash; de k&oslash;rer for alle der &aring;bner projektet med Claude Code.
+  </div>
+</section>
+EH
+}
+
 _whp_aceternity_section() {
   [ "${USE_ACETERNITY:-none}" != "none" ] || return 0
   echo '<div class="div"></div>'
@@ -615,6 +663,8 @@ $(_whp_mcp_health_check_row)
 </section>
 
 $(_whp_awesome_agents_section)
+
+$(_whp_hooks_section)
 
 $(_whp_mcp_section)
 <!-- SKIFT AI-SYSTEM -->

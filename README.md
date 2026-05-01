@@ -174,6 +174,16 @@ Cleanup detekterer kun Forge-versionerne (via PHP-stack-signatur i description) 
 
 ## Changelog
 
+### v3.6.6 — Automatiske hooks ✓
+
+- `templates/hooks/post-write.sh` — PostToolUse(Write|Edit): PHP-lint + security/DB-tripwires → `additionalContext` til Claude
+- `templates/hooks/pre-bash.sh` — PreToolUse(Bash): blokerer `git commit` ved PHP-syntaksfejl i staged files (`permissionDecision: deny`)
+- `templates/hooks/stop.sh` — Stop: session-summary i terminalen med review-anbefalinger
+- `lib/17-hooks.sh` — `install_hooks()` funktion + idempotent merge ind i `.claude/settings.json`
+- `start-forge.sh` — `install_hooks` kaldt i build-sekvensen
+- `welcome.php` — ny "Automatiske checks"-sektion med forklaring af de 3 hooks
+- `markedsforing` — ny "Sker uden at du spørger"-sektion
+
 ### v3.6.5 — Usynlig orkestrering ✓
 
 - `prompt_agentic_discipline` er nu altid stille — fuld pakke installeres uden at spørge

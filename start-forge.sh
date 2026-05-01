@@ -199,6 +199,7 @@ generate_claude_md
 install_agents
 install_recommended_agents
 install_superpowers
+install_hooks
 install_commands
 install_rules
 install_skills
