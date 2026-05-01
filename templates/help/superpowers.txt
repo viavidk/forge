@@ -12,8 +12,9 @@ ofte 30 minutters debugging. Disciplinen er især værdifuld
 for komplekse features. For trivielle ting kan du sige
 "skip clarify" eller "just fix this".
 
-Plugin installeres automatisk når du starter Claude Code
-i dette projekt første gang.
+Plugin enables i .claude/settings.json (enabledPlugins +
+extraKnownMarketplaces). Claude Code installerer det
+automatisk fra obra/superpowers-marketplace ved første start.
 
 Forfatter: Jesse Vincent (MIT licens)
 Repo: https://github.com/obra/superpowers

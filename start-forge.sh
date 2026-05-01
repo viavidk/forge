@@ -3,7 +3,7 @@
 # Modulær projektgenerator for PHP/SQLite + Claude Code
 set -euo pipefail
 
-FORGE_VERSION="3.6.0"
+FORGE_VERSION="3.6.1"
 export FORGE_VERSION
 
 # ---------------------------------------------------------------------------
@@ -124,6 +124,13 @@ prompt_mode
 # ---------------------------------------------------------------------------
 if [ "$FORGE_MODE" != "fast" ]; then
   prompt_project_type
+else
+  # Hurtigt mode: sane default-projekttype så smart defaults virker for v3.6.0
+  PROJECT_TYPE="dashboard"
+  PROJECT_PROFILE="intern"
+  SUPERPOWERS_DEFAULT="Y"
+  AGENTS_DEFAULT="recommended"
+  export PROJECT_TYPE PROJECT_PROFILE SUPERPOWERS_DEFAULT AGENTS_DEFAULT
 fi
 
 # ---------------------------------------------------------------------------

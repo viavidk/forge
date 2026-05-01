@@ -1,0 +1,10 @@
+{
+  "enabledPlugins": [
+    "superpowers"
+  ],
+  "extraKnownMarketplaces": [
+    {
+      "url": "https://github.com/obra/superpowers-marketplace"
+    }
+  ]
+}

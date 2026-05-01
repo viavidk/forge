@@ -75,14 +75,39 @@ install_superpowers() {
 
   start_spinner "Konfigurerer Superpowers plugin..."
 
-  mkdir -p "$PROJECT/.claude" "$PROJECT/.claude-plugin"
+  mkdir -p "$PROJECT/.claude"
+  local settings="$PROJECT/.claude/settings.json"
+  local marketplace_url="https://github.com/obra/superpowers-marketplace"
 
-  if [ -f "$FORGE_ROOT/templates/partials/plugins.json.template" ]; then
-    cp "$FORGE_ROOT/templates/partials/plugins.json.template" "$PROJECT/.claude/plugins.json"
-  fi
-  if [ -f "$FORGE_ROOT/templates/partials/marketplace.json.template" ]; then
-    cp "$FORGE_ROOT/templates/partials/marketplace.json.template" "$PROJECT/.claude-plugin/marketplace.json"
-  fi
+  # Brug python3 til at merge ind i eksisterende settings.json (eller skabe ny).
+  # Korrekt Claude Code-format: enabledPlugins[] + extraKnownMarketplaces[].
+  python3 - "$settings" "$marketplace_url" <<'PYEOF'
+import json, os, sys
 
-  stop_spinner "Superpowers konfigureret (auto-installeres ved første \`claude\`-start)"
+path = sys.argv[1]
+url  = sys.argv[2]
+
+if os.path.exists(path):
+    try:
+        with open(path) as f:
+            data = json.load(f)
+    except Exception:
+        data = {}
+else:
+    data = {}
+
+plugins = data.setdefault("enabledPlugins", [])
+if "superpowers" not in plugins:
+    plugins.append("superpowers")
+
+mps = data.setdefault("extraKnownMarketplaces", [])
+if not any(m.get("url") == url for m in mps if isinstance(m, dict)):
+    mps.append({"url": url})
+
+with open(path, "w") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+PYEOF
+
+  stop_spinner "Superpowers konfigureret i .claude/settings.json"
 }

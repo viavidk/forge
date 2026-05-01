@@ -39,7 +39,7 @@ ensure_agents_cache() {
 # (categories/<num>-<name>/<agent>.md). Forge-projekter er PHP/SQLite — derfor
 # php-pro og sql-pro overalt, ingen Node-specifikke agents som default.
 get_recommended_agents() {
-  case "$PROJECT_TYPE" in
+  case "${PROJECT_TYPE:-}" in
     dashboard)
       RECOMMENDED_AGENTS=(
         "04-quality-security/code-reviewer"
