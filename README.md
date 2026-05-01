@@ -4,7 +4,7 @@
 
 ```
                     ╔═════════════════════════╗
-                    ║    ViaVi Forge v3.6.3   ║
+                    ║    ViaVi Forge v3.6.4   ║
                     ║   PHP · SQLite · Claude ║
                     ╚═════════════════════════╝
 
@@ -267,12 +267,12 @@ Cleanup detekterer kun Forge-versionerne (via PHP-stack-signatur i description) 
 
 ---
 
-## Test-coverage (v3.6.3)
+## Test-coverage (v3.6.4)
 
 ```
 Unit-tests (tests/scenarios/):    23/23 ✓
 Original shadow (5×4 matrix):    101/101 ✓
-Orchestration shadow (v3.6.3):   180/180 ✓
+Orchestration shadow:            180/180 ✓
 End-to-end (start-forge.sh):      19/19 ✓
                                 ─────────
                                 323/323 ✓
