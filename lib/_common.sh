@@ -9,7 +9,7 @@ YELLOW=$(tput setaf 3 2>/dev/null || printf '')
 CYAN=$(tput setaf 6 2>/dev/null || printf '')
 RED=$(tput setaf 1 2>/dev/null || printf '')
 
-FORGE_VERSION="3.5.0"
+FORGE_VERSION="${FORGE_VERSION:-3.6.0}"
 
 _spinner_pid=""
 

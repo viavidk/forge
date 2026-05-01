@@ -1,0 +1,19 @@
+Superpowers tvinger Claude Code igennem en disciplineret
+workflow før den skriver kode:
+
+  1. Clarify — Stiller Socratic spørgsmål om hvad du vil
+  2. Design — Foreslår arkitektur før implementation
+  3. Plan   — Bryder arbejdet op i bid-størrelser med TDD
+  4. Code   — Skriver test først, derefter implementation
+  5. Verify — Code-reviewer agent validerer mod planen
+
+Det føles langsommere de første 30 sekunder, men sparer
+ofte 30 minutters debugging. Disciplinen er især værdifuld
+for komplekse features. For trivielle ting kan du sige
+"skip clarify" eller "just fix this".
+
+Plugin installeres automatisk når du starter Claude Code
+i dette projekt første gang.
+
+Forfatter: Jesse Vincent (MIT licens)
+Repo: https://github.com/obra/superpowers

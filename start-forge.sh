@@ -1,7 +1,10 @@
 #!/bin/bash
-# ViaVi Forge v3.5.0 — start-forge.sh
+# ViaVi Forge v3.6.0 — start-forge.sh
 # Modulær projektgenerator for PHP/SQLite + Claude Code
 set -euo pipefail
+
+FORGE_VERSION="3.6.0"
+export FORGE_VERSION
 
 # ---------------------------------------------------------------------------
 # Paths — løs symlinks så forge update virker fra ~/.local/bin/forge
@@ -16,13 +19,15 @@ export FORGE_ROOT
 # ---------------------------------------------------------------------------
 show_help() {
   echo ""
-  echo "  ViaVi Forge v3.5.0 — PHP/SQLite projektgenerator"
+  echo "  ViaVi Forge v$FORGE_VERSION — PHP/SQLite projektgenerator"
   echo ""
   echo "  Brug:"
   echo "    forge                  Hurtigt mode (2 spørgsmål)"
-  echo "    forge --guided         Guided mode (8 trin)"
+  echo "    forge --guided         Guided mode (9 trin)"
   echo "    forge --advanced       Avanceret mode (alle valg)"
   echo "    forge update           Opdatér Forge fra GitHub"
+  echo "    forge agents [list|update|search <ord>]"
+  echo "                           Håndter awesome-agents cache"
   echo "    forge --help           Vis denne hjælp"
   echo ""
   echo "  Genererede projekter kræver: php, composer, git"
@@ -60,6 +65,14 @@ for lib in "$FORGE_ROOT/lib/"*.sh; do
   # shellcheck source=/dev/null
   source "$lib"
 done
+
+# ---------------------------------------------------------------------------
+# Subcommand: forge agents [list|update|search <ord>]
+# ---------------------------------------------------------------------------
+if [ "${1:-}" = "agents" ]; then
+  forge_agents_command "${2:-}" "${3:-}"
+  exit $?
+fi
 
 # ---------------------------------------------------------------------------
 # Initialisér tilstand
@@ -160,7 +173,12 @@ prompt_mcps
 prompt_viavi_token
 
 # ---------------------------------------------------------------------------
-# Trin 8 — Konfliktvalidering
+# Trin 8 — Agentic disciplin (Superpowers + curated agents)
+# ---------------------------------------------------------------------------
+prompt_agentic_discipline
+
+# ---------------------------------------------------------------------------
+# Trin 9 — Konfliktvalidering
 # ---------------------------------------------------------------------------
 validate_no_conflicts
 
@@ -175,6 +193,8 @@ install_design_md
 generate_mcp_config
 generate_claude_md
 install_agents
+install_recommended_agents
+install_superpowers
 install_commands
 install_rules
 install_skills

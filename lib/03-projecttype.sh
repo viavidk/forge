@@ -65,6 +65,8 @@ prompt_project_type() {
       DEFAULT_TUNNEL="Y"
       DEFAULT_TAILWIND="Y"
       DEFAULT_MCPS="all"
+      SUPERPOWERS_DEFAULT="Y"
+      AGENTS_DEFAULT="recommended"
       ;;
     backend)
       DEFAULT_DESIGN_SOURCE="skip"
@@ -73,6 +75,8 @@ prompt_project_type() {
       DEFAULT_TUNNEL="N"
       DEFAULT_TAILWIND="N"
       DEFAULT_MCPS="context7-only"
+      SUPERPOWERS_DEFAULT="N"
+      AGENTS_DEFAULT="recommended"
       ;;
     intern|*)
       DEFAULT_DESIGN_SOURCE="viavi-design-system"
@@ -81,6 +85,8 @@ prompt_project_type() {
       DEFAULT_TUNNEL="N"
       DEFAULT_TAILWIND="Y"
       DEFAULT_MCPS="all"
+      SUPERPOWERS_DEFAULT="Y"
+      AGENTS_DEFAULT="recommended"
       ;;
   esac
 
@@ -97,4 +103,5 @@ prompt_project_type() {
   export PROJECT_TYPE PROJECT_PROFILE
   export DEFAULT_DESIGN_SOURCE DEFAULT_TEMPLATE DEFAULT_ACETERNITY
   export DEFAULT_TUNNEL DEFAULT_TAILWIND DEFAULT_MCPS
+  export SUPERPOWERS_DEFAULT AGENTS_DEFAULT
 }

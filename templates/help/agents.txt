@@ -1,0 +1,18 @@
+Curated agents fra awesome-claude-code-subagents giver
+Claude Code domain-specific eksperter for specifikke
+opgaver. Når du beder Claude Code lave noget:
+
+  "Optimér denne SQL-query"      → postgres-pro / db-reviewer
+  "Lav en accessibility-audit"   → accessibility-tester
+  "Tjek for sikkerhedsproblemer" → security-auditor
+
+Forge installerer en curated liste optimeret til din
+projekttype (5-7 agents). Du kan altid tilføje flere
+senere med:
+
+  forge agents list
+  forge agents search <søgeord>
+  forge agents update
+
+Bibliotek: https://github.com/VoltAgent/awesome-claude-code-subagents
+Licens: MIT

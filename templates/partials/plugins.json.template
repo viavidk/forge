@@ -1,0 +1,9 @@
+{
+  "plugins": [
+    {
+      "name": "superpowers",
+      "marketplace": "obra/superpowers-marketplace",
+      "auto-install": true
+    }
+  ]
+}

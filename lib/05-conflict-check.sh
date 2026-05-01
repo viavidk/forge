@@ -33,6 +33,9 @@ validate_no_conflicts() {
     export USE_TAILWIND
   fi
 
+  # Regel 5: bash-version + Superpowers (kun warning, ikke fejl)
+  check_superpowers_compatibility 2>/dev/null || true
+
   if [ ${#errors[@]} -gt 0 ]; then
     echo ""
     echo "  ✗ Konflikter fundet:"

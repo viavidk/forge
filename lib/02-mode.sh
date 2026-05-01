@@ -12,7 +12,7 @@ prompt_mode() {
   echo ""
   echo "  ${BOLD}Vælg mode:${RESET}"
   echo "    ${BOLD}1) Hurtigt${RESET}    — 2 spørgsmål, smart defaults (~10 sek)"
-  echo "    2) Guided     — 8 trin, vælg alt vigtigt (~1 min)"
+  echo "    2) Guided     — 9 trin, vælg alt vigtigt (~1 min)"
   echo "    3) Avanceret  — alle valg, fuld kontrol (~3 min)"
   echo ""
   printf "  Mode [1]: "
