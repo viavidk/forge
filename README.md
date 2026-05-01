@@ -258,4 +258,4 @@ Inklusiv: PHP-syntax-validering på genereret welcome.php, idempotens-test for s
 
 MIT — se [LICENSE](LICENSE).
 
-Forge er bygget af Jimmi Frederiksen ([viavi.dk](https://viavi.dk/)). Superpowers af Jesse Vincent ([obra/superpowers](https://github.com/obra/superpowers)). Awesome agents af [VoltAgent](https://github.com/VoltAgent/awesome-claude-code-subagents). Alle MIT.
+Forge er bygget af Jimmi Frederiksen ([viavi.dk](https://app.viavi.dk/)). Superpowers af Jesse Vincent ([obra/superpowers](https://github.com/obra/superpowers)). Awesome agents af [VoltAgent](https://github.com/VoltAgent/awesome-claude-code-subagents). Alle MIT.
