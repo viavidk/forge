@@ -15,6 +15,32 @@ unset _self
 export FORGE_ROOT
 
 # ---------------------------------------------------------------------------
+# Auto-update check (max once per day, non-blocking)
+# ---------------------------------------------------------------------------
+FORGE_UPDATE_AVAILABLE=""
+export FORGE_UPDATE_AVAILABLE
+
+check_for_update() {
+  local check_file="${FORGE_ROOT}/.update-checked"
+  local today; today=$(date +%Y-%m-%d)
+  [ -f "$check_file" ] && [ "$(cat "$check_file")" = "$today" ] && return 0
+  echo "$today" > "$check_file"
+  local local_ver; local_ver=$(get_local_version)
+  local remote_ver
+  remote_ver=$(curl -fsSL --max-time 3 \
+    "https://raw.githubusercontent.com/viavidk/forge/main/VERSION" 2>/dev/null \
+    | tr -d '[:space:]' || echo "")
+  [ -n "$remote_ver" ] && [ "$remote_ver" != "$local_ver" ] && \
+    FORGE_UPDATE_AVAILABLE="$remote_ver" && export FORGE_UPDATE_AVAILABLE
+}
+
+print_update_notice() {
+  [ -n "${FORGE_UPDATE_AVAILABLE:-}" ] || return 0
+  echo ""
+  echo "  ℹ  Forge v${FORGE_UPDATE_AVAILABLE} tilgængelig — kør 'forge update'"
+}
+
+# ---------------------------------------------------------------------------
 # CLI-flag: update / --help
 # ---------------------------------------------------------------------------
 show_help() {
@@ -26,6 +52,8 @@ show_help() {
   echo "    forge --guided         Guided mode (8 trin)"
   echo "    forge --advanced       Avanceret mode (alle valg)"
   echo "    forge update           Opdatér Forge fra GitHub"
+  echo "    forge doctor           Tjek projekt-miljøets sundhed"
+  echo "    forge design refresh   Opdatér DESIGN.md med ny kilde"
   echo "    forge agents [list|update|search <ord>]"
   echo "                           Håndter awesome-agents cache"
   echo "    forge --help           Vis denne hjælp"
@@ -73,6 +101,8 @@ if [ "${1:-}" = "agents" ]; then
   forge_agents_command "${2:-}" "${3:-}"
   exit $?
 fi
+
+check_for_update
 
 # ---------------------------------------------------------------------------
 # Initialisér tilstand
@@ -205,3 +235,4 @@ install_rules
 install_skills
 finalize_project
 print_summary
+print_update_notice
