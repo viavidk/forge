@@ -197,9 +197,11 @@ print(('ok' if 'context7' in srv else 'missing'),
   # CLAUDE.md
   [ -f "CLAUDE.md" ] && _dr_ok "CLAUDE.md" "til stede" || _dr_fail "CLAUDE.md" "mangler"
 
-  # DESIGN.md (valgfrit — kun advarsel hvis CLAUDE.md refererer til den)
+  # DESIGN.md (valgfrit — ui-ux-pro-max skill ejer den, eller statisk fil)
   if [ -f "DESIGN.md" ]; then
     _dr_ok "DESIGN.md" "til stede"
+  elif [ -f ".claude/skills/ui-ux-pro-max/SKILL.md" ]; then
+    _dr_ok "DESIGN.md" "styret af ui-ux-pro-max skill ✓"
   elif grep -q "DESIGN.md" "CLAUDE.md" 2>/dev/null; then
     _dr_warn "DESIGN.md" "mangler men refereret i CLAUDE.md — kør 'forge design refresh'"
   else
