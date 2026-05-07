@@ -194,20 +194,68 @@ print('superpowers=' + str(sp))
 
   # MCP-servere
   if [ -f ".mcp.json" ]; then
-    local mcp_context7 mcp_chrome mcp_viavi
-    read -r mcp_context7 mcp_chrome mcp_viavi < <(python3 -c "
+    local mcp_result
+    mcp_result=$(python3 -c "
 import json
 d=json.load(open('.mcp.json'))
 srv=d.get('mcpServers',{})
-print(('ok' if 'context7' in srv else 'missing'),
-      ('ok' if 'chrome-devtools' in srv else 'missing'),
-      ('ok' if 'viavi-forge' in srv else 'missing'))
-" 2>/dev/null || echo "missing missing missing")
-    [ "$mcp_context7" = "ok" ] && _dr_ok "MCP: Context7" "konfigureret ✓" || _dr_warn "MCP: Context7" "ikke i .mcp.json"
-    [ "$mcp_chrome"   = "ok" ] && _dr_ok "MCP: Chrome DevTools" "konfigureret ✓" || _dr_warn "MCP: Chrome DevTools" "ikke i .mcp.json"
-    [ "$mcp_viavi"    = "ok" ] && _dr_ok "MCP: ViaVi Skills" "konfigureret ✓" || _dr_warn "MCP: ViaVi Skills" "ikke i .mcp.json"
+
+# Context7 og Chrome DevTools
+print('context7=' + ('ok' if 'context7' in srv else 'missing'))
+print('chrome=' + ('ok' if 'chrome-devtools' in srv else 'missing'))
+
+# ViaVi: acceptér viavi-skills eller viavi-forge
+viavi_key = next((k for k in srv if 'viavi' in k), None)
+if viavi_key:
+    entry = srv[viavi_key]
+    # Bearer token i headers
+    auth = entry.get('headers', {}).get('Authorization', '')
+    token = auth.replace('Bearer ', '').strip()
+    # URL-token fallback (ældre format)
+    if not token:
+        import re
+        url = entry.get('url', '')
+        m = re.search(r'token=([^&\s]+)', url)
+        token = m.group(1) if m else ''
+    if token and token not in (r'\${VIAVI_TOKEN}', 'YOUR_VIAVI_TOKEN_HERE', ''):
+        print('viavi=ok')
+        print('viavi_token=set')
+    else:
+        print('viavi=ok')
+        print('viavi_token=empty')
+else:
+    print('viavi=missing')
+    print('viavi_token=none')
+" 2>/dev/null || echo -e "context7=missing\nchrome=missing\nviavi=missing\nviavi_token=none")
+
+    local mcp_c7 mcp_ch mcp_vi mcp_tok
+    mcp_c7=$(echo "$mcp_result" | grep "^context7=" | cut -d= -f2)
+    mcp_ch=$(echo "$mcp_result" | grep "^chrome=" | cut -d= -f2)
+    mcp_vi=$(echo "$mcp_result" | grep "^viavi=" | cut -d= -f2)
+    mcp_tok=$(echo "$mcp_result" | grep "^viavi_token=" | cut -d= -f2)
+
+    # ViaVi Skills + token
+    if [ "$mcp_vi" = "ok" ]; then
+      if [ "$mcp_tok" = "set" ]; then
+        _dr_ok "MCP: ViaVi Skills" "konfigureret · token ✓"
+      else
+        _dr_warn "MCP: ViaVi Skills" "konfigureret men token mangler — tjek .mcp.json"
+      fi
+      # Workspace + Mesh i CLAUDE.md?
+      if grep -q "^## Workspace" "CLAUDE.md" 2>/dev/null && grep -q "^## Agent Mesh" "CLAUDE.md" 2>/dev/null; then
+        _dr_ok "ViaVi Workspace/Mesh" "konfigureret i CLAUDE.md ✓"
+      else
+        _dr_warn "ViaVi Workspace/Mesh" "mangler i CLAUDE.md — kør 'forge update'"
+      fi
+    else
+      _dr_info "MCP: ViaVi Skills" "ikke konfigureret — kør 'forge' og vælg ViaVi Skills"
+    fi
+
+    # Context7 og Chrome DevTools (valgfrie — info hvis de mangler)
+    [ "$mcp_c7" = "ok" ] && _dr_ok "MCP: Context7" "konfigureret ✓" || _dr_info "MCP: Context7" "ikke valgt"
+    [ "$mcp_ch" = "ok" ] && _dr_ok "MCP: Chrome DevTools" "konfigureret ✓" || _dr_info "MCP: Chrome DevTools" "ikke valgt"
   else
-    _dr_warn "MCP (.mcp.json)" "mangler — ingen MCP-servere konfigureret"
+    _dr_warn "MCP (.mcp.json)" "mangler — kør 'forge' i projektmappen"
   fi
 
   # CLAUDE.md
