@@ -96,8 +96,8 @@ echo "PASS T7: post-write.sh has composer test runner"
 # T8: new-page.md and new-module.md exist with correct content
 [ -f "$FORGE_ROOT/templates/commands/new-page.md" ] || { echo "FAIL T8: new-page.md missing"; exit 1; }
 [ -f "$FORGE_ROOT/templates/commands/new-module.md" ] || { echo "FAIL T8: new-module.md missing"; exit 1; }
-grep -q "src/views" "$FORGE_ROOT/templates/commands/new-page.md" || { echo "FAIL T8: new-page.md missing views path"; exit 1; }
-grep -q "src/views" "$FORGE_ROOT/templates/commands/new-module.md" || { echo "FAIL T8: new-module.md missing views path"; exit 1; }
+grep -q "app/views" "$FORGE_ROOT/templates/commands/new-page.md" || { echo "FAIL T8: new-page.md missing views path"; exit 1; }
+grep -q "app/views" "$FORGE_ROOT/templates/commands/new-module.md" || { echo "FAIL T8: new-module.md missing views path"; exit 1; }
 echo "PASS T8: new-page.md and new-module.md templates exist"
 
 # T9: forge design refresh subcommand exists
@@ -112,3 +112,14 @@ for var in APP_NAME APP_ENV APP_DEBUG DB_PATH SESSION_SECRET; do
     { echo "FAIL T10: .env.example missing $var"; exit 1; }
 done
 echo "PASS T10: .env.example template has required variables"
+
+# T11: forge agents list shows cache date header
+# Only run if cache exists
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/forge/awesome-agents"
+if [ -d "$CACHE" ]; then
+  out=$(bash "$FORGE_ROOT/start-forge.sh" agents list 2>&1)
+  echo "$out" | grep -qE "Agent-cache|opdateret" || { echo "FAIL T11: agents list missing cache date header"; exit 1; }
+  echo "PASS T11: agents list shows cache metadata"
+else
+  echo "SKIP T11: agent cache not present, skipping"
+fi
