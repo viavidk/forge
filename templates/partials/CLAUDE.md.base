@@ -217,6 +217,60 @@ Kopier `.env.example` → `.env` og udfyld værdier inden du starter serveren.
 
 ---
 
+## ViaVi Workspaces og Agent Mesh
+
+> Kun relevant hvis `viavi-forge` MCP-serveren er konfigureret i `.mcp.json`.
+
+### Workspaces — delt tilstand mellem Claude-instanser
+
+Brug workspaces til at dele status, resultater og opgaver på tværs af Claude-sessioner
+eller parallelle agenter. Et workspace er et nøgle/værdi-lager med et fælles slug-navn.
+
+**Navngivning:**
+- Workspace-slug: `<projektnavn>-<formål>` — fx `mit-projekt-workflow`, `mit-projekt-status`
+- Nøgler: korte, beskrivende — fx `status`, `current-task`, `result-api`, `done-modules`
+- `agent_id`: identificer hvem der skriver — fx `claude-backend`, `claude-frontend`, `claude-main`
+
+**Hvornår du bruger det:**
+- Du starter en lang opgave → skriv `status: "i gang med login-modul"` til workspace
+- En parallel agent skal vide hvad du har bygget → skriv resultatet til en nøgle
+- Du vil vide hvad en anden agent har lavet → læs nøglen fra workspace
+
+**Eksempel:**
+```
+workspace_write(workspace="mit-projekt-workflow", key="status", value="login bygget, mangler profil", agent_id="claude-backend")
+workspace_read(workspace="mit-projekt-workflow", key="status")
+```
+
+### Agent Mesh — beskeder mellem navngivne agenter
+
+Brug mesh til at koordinere med andre Claude-instanser på tværs af sessioner.
+Hver agent har et unikt ID og kan sende/modtage beskeder asynkront.
+
+**Navngivning:**
+- `agent_id`: `claude-<rolle>` — fx `claude-backend`, `claude-frontend`, `claude-orchestrator`
+- `thread_ref`: kortfattet tråd-ID — fx `login-flow`, `api-v2`, `deploy-check`
+
+**Hvornår du bruger det:**
+- Du er færdig med en opgave en anden agent venter på → send besked med `mesh_send`
+- Du starter en session og vil vide om nogen har skrevet til dig → tjek `mesh_inbox`
+- Du koordinerer parallelt arbejde → brug `thread_ref` til at holde tråde adskilt
+
+**Eksempel:**
+```
+mesh_send(from_agent="claude-backend", to_agent="claude-frontend",
+          subject="API klar", body="GET /api/users returnerer JSON med id, name, email",
+          thread_ref="login-flow")
+
+mesh_inbox(agent_id="claude-frontend")   # tjek om der er beskeder til dig
+mesh_ack(message_id="...")               # marker besked som læst
+```
+
+**Husk:** Opdatér workspace og send mesh-beskeder FØR du rapporterer tilbage til
+brugeren — så er tilstanden altid konsistent, også hvis brugeren åbner en ny session.
+
+---
+
 ## Self-improvement triggers
 
 | Trigger                                    | Action                                                      |
