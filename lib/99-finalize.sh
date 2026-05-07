@@ -906,32 +906,68 @@ finalize_project() {
 }
 
 print_summary() {
+  local pname; pname=$(basename "$PROJECT")
   echo ""
+
   if [ "$UPGRADE" = "true" ]; then
-    echo "  ✓  Forge-konfiguration opgraderet i '$(basename "$PROJECT")'"
-    echo "     (CLAUDE.md, rules, agents, commands, skills, DESIGN.md)"
+    printf "  ${DIM}══════════════════════════════════════════════════${RESET}\n"
+    printf "  ${GREEN}${BOLD}✦  Konfiguration opgraderet${RESET}  ${DIM}— %s${RESET}\n" "$pname"
+    printf "  ${DIM}   CLAUDE.md · rules · agents · commands · skills · DESIGN.md${RESET}\n"
   else
-    local deploy_path="${SUBPATH:-/}"
-    if [ "$USE_ROUTER" = "Y" ]; then
-      echo "Projekt '$(basename "$PROJECT")' oprettet (deployment-sti: $deploy_path)"
-    else
-      echo "Projekt '$(basename "$PROJECT")' oprettet (uden Apache routing)"
-    fi
+    printf "  ${DIM}══════════════════════════════════════════════════${RESET}\n"
+    printf "  ${GREEN}${BOLD}✦  Projekt oprettet${RESET}  ${DIM}—${RESET}  ${BOLD}%s${RESET}\n" "$pname"
+    printf "  ${DIM}══════════════════════════════════════════════════${RESET}\n"
     echo ""
-    echo "  Konfiguration:"
-    echo "    Tailwind:       ${USE_TAILWIND:-N}"
-    echo "    DESIGN.md:      ${DESIGN_SOURCE:-ingen}"
-    echo "    MCP-servere:    $([ "${USE_VIAVI_SKILLS:-N}" = "Y" ] && echo "ViaVi Skills" || true)$([ "${USE_CONTEXT7:-N}" = "Y" ] && echo " Context7" || true)$([ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ] && echo " Chrome" || true)"
-    local ace_label="ingen"
+
+    printf "  ${WHITE}${BOLD}Konfiguration${RESET}\n"
+
+    local tw_val; [ "${USE_TAILWIND:-N}" = "Y" ] \
+      && tw_val="${GREEN}✓  aktiveret${RESET}" \
+      || tw_val="${DIM}ikke valgt${RESET}"
+    printf "  ${DIM}  %-16s${RESET}  %b\n" "Tailwind" "$tw_val"
+
+    local ds="${DESIGN_SOURCE:-ingen}"
+    local ds_val; [ "$ds" != "ingen" ] \
+      && ds_val="${GREEN}${ds}${RESET}" \
+      || ds_val="${DIM}ingen${RESET}"
+    printf "  ${DIM}  %-16s${RESET}  %b\n" "DESIGN.md" "$ds_val"
+
+    local mcps=""
+    [ "${USE_VIAVI_SKILLS:-N}" = "Y" ]    && mcps+="ViaVi Skills"
+    [ "${USE_CONTEXT7:-N}" = "Y" ]        && mcps+="${mcps:+  ·  }Context7"
+    [ "${USE_CHROME_DEVTOOLS:-N}" = "Y" ] && mcps+="${mcps:+  ·  }Chrome DevTools"
+    local mcps_val; [ -n "$mcps" ] \
+      && mcps_val="${GREEN}${mcps}${RESET}" \
+      || mcps_val="${DIM}ingen${RESET}"
+    printf "  ${DIM}  %-16s${RESET}  %b\n" "MCP-servere" "$mcps_val"
+
+    local ace_val="${DIM}ingen${RESET}"
     case "${USE_ACETERNITY:-none}" in
-      full)   ace_label="Aceternity + Motion JS" ;;
-      motion) ace_label="Motion JS" ;;
+      full)   ace_val="${GREEN}Aceternity + Motion JS${RESET}" ;;
+      motion) ace_val="${GREEN}Motion JS${RESET}" ;;
     esac
-    echo "    Animationer:    $ace_label"
+    printf "  ${DIM}  %-16s${RESET}  %b\n" "Animationer" "$ace_val"
+
     echo ""
-    find "$PROJECT" | grep -v '\.git' | sort
+    printf "  ${WHITE}${BOLD}Filer${RESET}\n"
+    find "$PROJECT" -maxdepth 3 | grep -v '\.git' | sort | while read -r f; do
+      local rel="${f#${PROJECT}/}"
+      [ "$rel" = "$f" ] || [ -z "$rel" ] && continue
+      local depth; depth=$(printf '%s' "$rel" | tr -cd '/' | wc -c)
+      local indent; indent=$(printf '%*s' "$((depth * 2 + 2))" '')
+      local name; name=$(basename "$f")
+      if [ -d "$f" ]; then
+        printf "  ${CYAN}%s%s/${RESET}\n" "$indent" "$name"
+      else
+        printf "  ${DIM}%s%s${RESET}\n" "$indent" "$name"
+      fi
+    done
   fi
+
   echo ""
-  echo "Start: cd $(basename "$PROJECT") && claude"
+  printf "  ${DIM}──────────────────────────────────────────────────${RESET}\n"
+  printf "  ${WHITE}${BOLD}Næste skridt${RESET}\n"
+  printf "  ${CYAN}${BOLD}    cd %s && claude${RESET}\n" "$pname"
+  printf "  ${DIM}──────────────────────────────────────────────────${RESET}\n"
   echo ""
 }

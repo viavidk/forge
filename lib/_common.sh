@@ -70,8 +70,14 @@ kill_spinner() {
 
 print_header() {
   echo ""
-  echo "${BOLD}ViaVi Forge v${FORGE_VERSION}${RESET} · viavi.dk"
-  echo "────────────────────────────────"
+  printf "  ${CYAN}${BOLD}███████╗ ██████╗ ██████╗  ██████╗ ███████╗${RESET}\n"
+  printf "  ${CYAN}${BOLD}██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝${RESET}\n"
+  printf "  ${CYAN}${BOLD}█████╗  ██║   ██║██████╔╝██║  ███╗█████╗  ${RESET}\n"
+  printf "  ${CYAN}${BOLD}██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝  ${RESET}\n"
+  printf "  ${CYAN}${BOLD}██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗${RESET}\n"
+  printf "  ${CYAN}${BOLD}╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝${RESET}\n"
+  echo ""
+  printf "  ${MAGENTA}${BOLD}ViaVi${RESET}${DIM} ──────────────────────────────────────  PHP/SQLite · v${FORGE_VERSION}${RESET}\n"
   echo ""
 }
 

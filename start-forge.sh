@@ -37,7 +37,7 @@ check_for_update() {
 print_update_notice() {
   [ -n "${FORGE_UPDATE_AVAILABLE:-}" ] || return 0
   echo ""
-  echo "  ℹ  Forge v${FORGE_UPDATE_AVAILABLE} tilgængelig — kør 'forge update'"
+  printf "  ${YELLOW}ℹ  Forge v${FORGE_UPDATE_AVAILABLE} tilgængelig${RESET}${DIM} — kør 'forge update'${RESET}\n"
 }
 
 # ---------------------------------------------------------------------------
@@ -315,34 +315,41 @@ _dr_summary() {
 # CLI-flag: update / --help
 # ---------------------------------------------------------------------------
 show_help() {
+  printf "  ${CYAN}${BOLD}███████╗ ██████╗ ██████╗  ██████╗ ███████╗${RESET}\n"
+  printf "  ${CYAN}${BOLD}██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝${RESET}\n"
+  printf "  ${CYAN}${BOLD}█████╗  ██║   ██║██████╔╝██║  ███╗█████╗  ${RESET}\n"
+  printf "  ${CYAN}${BOLD}██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝  ${RESET}\n"
+  printf "  ${CYAN}${BOLD}██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗${RESET}\n"
+  printf "  ${CYAN}${BOLD}╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝${RESET}\n"
   echo ""
-  echo "  ViaVi Forge v$FORGE_VERSION — PHP/SQLite projektgenerator"
+  printf "  ${MAGENTA}${BOLD}ViaVi${RESET}${DIM} ──────────────────────────────────────${RESET}  ${BOLD}hjælp${RESET}  ${DIM}v${FORGE_VERSION}${RESET}\n"
   echo ""
-  echo "  Brug:"
-  echo "    forge                  Hurtigt mode (2 spørgsmål)"
-  echo "    forge --guided         Guided mode (8 trin)"
-  echo "    forge --advanced       Avanceret mode (alle valg)"
-  echo "    forge update           Opdatér Forge-værktøjet fra GitHub"
-  echo "    forge project upgrade  Opgradér projekt til nyeste version"
-  echo "    forge doctor           Tjek projekt-miljøets sundhed"
-  echo "    forge design refresh   Opdatér DESIGN.md med ny kilde"
-  echo "    forge agents [list|update|search <ord>]"
-  echo "                           Håndter awesome-agents cache"
-  echo "    forge --help           Vis denne hjælp"
+  printf "  ${WHITE}${BOLD}Brug:${RESET}\n"
+  printf "  ${CYAN}  %-28s${RESET}%s\n" "forge"                  "Hurtigt mode (2 spørgsmål)"
+  printf "  ${CYAN}  %-28s${RESET}%s\n" "forge --guided"          "Guided mode (8 trin)"
+  printf "  ${CYAN}  %-28s${RESET}%s\n" "forge --advanced"        "Avanceret mode (alle valg)"
   echo ""
-  echo "  Genererede projekter kræver: php, composer, git"
-  echo "  Mere info: https://github.com/viavidk/forge"
+  printf "  ${WHITE}${BOLD}Vedligehold:${RESET}\n"
+  printf "  ${CYAN}  %-28s${RESET}%s\n" "forge update"            "Opdatér Forge-værktøjet fra GitHub"
+  printf "  ${CYAN}  %-28s${RESET}%s\n" "forge project upgrade"   "Opgradér projekt til nyeste version"
+  printf "  ${CYAN}  %-28s${RESET}%s\n" "forge doctor"            "Tjek projekt-miljøets sundhed"
+  printf "  ${CYAN}  %-28s${RESET}%s\n" "forge design refresh"    "Opdatér DESIGN.md med ny kilde"
+  printf "  ${CYAN}  %-28s${RESET}%s\n" "forge agents [list|update|search]"  "Håndter awesome-agents cache"
+  echo ""
+  printf "  ${DIM}Kræver: php · composer · git   —   viavi.dk${RESET}\n"
   echo ""
 }
 
 if [ "${1:-}" = "update" ]; then
-  echo "Opdaterer Forge fra https://github.com/viavidk/forge..."
+  source "$FORGE_ROOT/lib/_common.sh"
+  printf "\n  ${CYAN}${BOLD}Opdaterer Forge${RESET}${DIM} — github.com/viavidk/forge${RESET}\n\n"
   cd "$FORGE_ROOT"
   git pull
-  echo "✓ Forge er opdateret"
+  printf "\n  ${GREEN}${BOLD}✦  Forge opdateret${RESET}\n"
   echo ""
-  echo "  Tip: kør 'forge project upgrade' i dit projekt for at opdatere"
-  echo "       hooks, commands og CLAUDE.md til nyeste version."
+  printf "  ${DIM}Tip: kør 'forge project upgrade' i dit projekt for at opdatere${RESET}\n"
+  printf "  ${DIM}     hooks, commands og CLAUDE.md til nyeste version.${RESET}\n"
+  echo ""
   exit 0
 fi
 
@@ -354,6 +361,7 @@ if [ "${1:-}" = "project" ] && [ "${2:-}" = "upgrade" ]; then
 fi
 
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  source "$FORGE_ROOT/lib/_common.sh"
   show_help
   exit 0
 fi
