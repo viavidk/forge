@@ -176,6 +176,22 @@ print('superpowers=' + str(sp))
     _dr_warn "Agents" "ingen — kør 'forge agents update'"
   fi
 
+  # Skills
+  if [ -d ".claude/skills" ]; then
+    local skill_names=()
+    for sd in ".claude/skills"/*/; do
+      [ -d "$sd" ] && skill_names+=("$(basename "$sd")")
+    done
+    local skill_count=${#skill_names[@]}
+    if [ "$skill_count" -gt 0 ]; then
+      _dr_ok "Skills" "($skill_count: $(IFS=', '; echo "${skill_names[*]}"))"
+    else
+      _dr_info "Skills" "ingen installeret"
+    fi
+  else
+    _dr_info "Skills" "ingen installeret"
+  fi
+
   # MCP-servere
   if [ -f ".mcp.json" ]; then
     local mcp_context7 mcp_chrome mcp_viavi
