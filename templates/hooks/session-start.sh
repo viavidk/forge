@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 # SessionStart hook — inject last session summary into Claude's context
 
 SESSIONS_DIR="${PWD}/sessions"

@@ -59,9 +59,11 @@ import json, sys
 d = json.load(open('$TMP/.claude/settings.json'))
 ss = d.get('hooks', {}).get('SessionStart', [])
 cmds = [h.get('command','') for e in ss for h in e.get('hooks',[])]
+matchers = [e.get('matcher','') for e in ss]
 has = any('session-start' in c for c in cmds)
-sys.exit(0 if has else 1)
-" || { echo "FAIL T5: SessionStart hook not registered in settings.json"; rm -rf "$TMP"; exit 1; }
+has_matcher = any('startup' in m for m in matchers)
+sys.exit(0 if (has and has_matcher) else 1)
+" || { echo "FAIL T5: SessionStart hook not registered or missing matcher"; rm -rf "$TMP"; exit 1; }
 rm -rf "$TMP"
 echo "PASS T5: session-start.sh template + registered in settings.json"
 
