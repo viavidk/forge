@@ -1,10 +1,10 @@
-# ViaVi Forge v3.6.6
+# ViaVi Forge v3.7.0
 
 > **Et generator-værktøj der scaffolder produktionsklare PHP/SQLite-projekter med Claude Code AI-agents — præ-konfigureret og klar fra første prompt.**
 
 ```
                     ╔═════════════════════════╗
-                    ║    ViaVi Forge v3.6.5   ║
+                    ║    ViaVi Forge v3.7.0   ║
                     ║   PHP · SQLite · Claude ║
                     ╚═════════════════════════╝
 
@@ -60,6 +60,9 @@ forge agents search <ord>        # Find en specifik agent
 forge agents update              # Opdatér agent-cache
 forge agents cleanup             # Detektér v3.6.2-dubletter (ældre projekter)
 forge agents cleanup --apply     # Slet dem (med y/N-bekræftelse)
+
+forge doctor                     # Tjek projekt-miljøets sundhed
+forge design refresh             # Opdatér DESIGN.md med ny kilde
 ```
 
 ---
@@ -77,10 +80,25 @@ Et nyt projekt får:
 - **Cloudflare Tunnel** — instant ekstern URL via QR-kode (valgfrit)
 - **MCP-servere** — ViaVi Skills, Context7, Chrome DevTools (valgfrit)
 - **Komplet AI-workflow** — workflow-disciplin, code-review, security-audit og stack-validering installeres automatisk
+- **`.env.example`** — genereres ved scaffold med alle standard Forge-variabler; `.env` tilføjes til `.gitignore`
+- **Session audit** — Stop-hook skriver `sessions/DRAFT.md` efter hvert svar; `/project:session-end` gemmer narrativ opsummering
+- **`forge doctor`** — checker PHP 8.1+, composer, git, sqlite3, hooks, settings.json, CLAUDE.md og database; CI-kompatibel exit code
+- **Auto-update check** — stille check ved opstart maks én gang per dag
 
 ---
 
-## AI-capabilities (v3.6.5)
+## Session Audit
+
+Forge installerer et automatisk session-audit-system i hvert genereret projekt:
+
+- **`sessions/`-mappen** oprettes automatisk ved første kørsel og er `.gitignored`
+- **`sessions/DRAFT.md`** opdateres efter hvert Claude-svar via Stop-hook med git-data (ændrede filer, commit-status, review-anbefalinger)
+- **SessionStart-hook** injicerer forrige sessions kontekst ved opstart, så Claude husker hvad der skete sidst
+- **`/project:session-end`** slash-kommando: Claude skriver en narrativ opsummering og gemmer den som `sessions/YYYY-MM-DD-HHMMSS.md`
+
+---
+
+## AI-capabilities (v3.7.0)
 
 Capabilities installeres automatisk — ingen konfiguration nødvendig.
 
