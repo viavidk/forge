@@ -1,7 +1,7 @@
 # Forge v3.7.0 — Enhancement Spec
 
 **Date:** 2026-05-07
-**Status:** Draft — awaiting user review
+**Status:** Approved — 2026-05-07
 **Scope:** Part A — Forge engine features (8 enhancements)
 **Parts B + C** (markedsforing/ site + welcome.php) follow after Part A is implemented.
 
