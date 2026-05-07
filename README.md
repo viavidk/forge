@@ -190,6 +190,18 @@ forge agents cleanup --apply   # Slet dem (med y/N-bekræftelse)
 
 ## Changelog
 
+### v3.7.0 — Session audit, doctor, auto-update + 5 produktivitetsfunktioner ✓
+
+- **Session audit** — Stop-hook → `sessions/DRAFT.md`; SessionStart-hook injicerer forrige kontekst; `/project:session-end` gemmer narrativ opsummering; `sessions/` er .gitignored
+- **`forge doctor`** — checker PHP 8.1+, composer, git, sqlite3, hooks, settings.json, CLAUDE.md, .env og database; ✓/⚠/✗ pr. check; exit code 1 ved fejl (CI-kompatibel)
+- **Auto-update check** — stille check ved opstart maks én gang per dag; printer én linje hvis ny version er tilgængelig; fejler silently offline
+- **Post-write test runner** — `post-write.sh` kører `composer test` efter PHP lint; fejl sendes som `additionalContext` til Claude
+- **`/project:new-page`** og **`/project:new-module`** — scaffold view-skeleton + routing-/include-linje
+- **`forge design refresh`** — genafvikler DESIGN.md-valg i eksisterende projekt; overskriver DESIGN.md efter bekræftelse
+- **`.env.example`** — genereres ved scaffold med alle standard Forge-variabler; `.env` tilføjes til `.gitignore`
+- **Agents version info** — `forge agents list` viser dato og antal; `forge agents update` printer diff
+- **`VERSION`-fil** — `~/.local/share/forge/VERSION` indeholder semver-streng; bruges til `check_for_update()`
+
 ### v3.6.6 — Automatiske hooks ✓
 
 - `templates/hooks/post-write.sh` — PostToolUse(Write|Edit): PHP-lint + security/DB-tripwires → `additionalContext` til Claude
