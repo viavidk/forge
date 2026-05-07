@@ -1,10 +1,13 @@
 {
-  "enabledPlugins": [
-    "superpowers"
-  ],
-  "extraKnownMarketplaces": [
-    {
-      "url": "https://github.com/obra/superpowers-marketplace"
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "superpowers-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      }
     }
-  ]
+  }
 }
