@@ -131,11 +131,11 @@ run_doctor() {
   if [ "$hok" -eq 4 ]; then
     _dr_ok "Hooks (4/4)" "post-write · pre-bash · stop · session-start"
   elif [ "$hok" -eq 3 ] && [[ " ${hmissing[*]} " == *" session-start.sh "* ]]; then
-    _dr_warn "Hooks (3/4)" "session-start mangler — kør 'forge update' for at opgradere til v3.7.0"
+    _dr_warn "Hooks (3/4)" "session-start mangler — kør 'forge project upgrade'"
   elif [ "$hok" -gt 0 ]; then
-    _dr_warn "Hooks ($hok/4)" "mangler: ${hmissing[*]}"
+    _dr_warn "Hooks ($hok/4)" "mangler: ${hmissing[*]} — kør 'forge project upgrade'"
   else
-    _dr_fail "Hooks" "alle mangler — kør 'forge update' i projektmappen"
+    _dr_fail "Hooks" "alle mangler — kør 'forge project upgrade'"
   fi
 
   # settings.json + Superpowers
@@ -245,7 +245,7 @@ else:
       if grep -q "^## Workspace" "CLAUDE.md" 2>/dev/null && grep -q "^## Agent Mesh" "CLAUDE.md" 2>/dev/null; then
         _dr_ok "ViaVi Workspace/Mesh" "konfigureret i CLAUDE.md ✓"
       else
-        _dr_warn "ViaVi Workspace/Mesh" "mangler i CLAUDE.md — kør 'forge update'"
+        _dr_warn "ViaVi Workspace/Mesh" "mangler i CLAUDE.md — kør 'forge project upgrade'"
       fi
     else
       _dr_info "MCP: ViaVi Skills" "ikke konfigureret — kør 'forge' og vælg ViaVi Skills"
@@ -296,7 +296,8 @@ show_help() {
   echo "    forge                  Hurtigt mode (2 spørgsmål)"
   echo "    forge --guided         Guided mode (8 trin)"
   echo "    forge --advanced       Avanceret mode (alle valg)"
-  echo "    forge update           Opdatér Forge fra GitHub"
+  echo "    forge update           Opdatér Forge-værktøjet fra GitHub"
+  echo "    forge project upgrade  Opgradér projekt til nyeste version"
   echo "    forge doctor           Tjek projekt-miljøets sundhed"
   echo "    forge design refresh   Opdatér DESIGN.md med ny kilde"
   echo "    forge agents [list|update|search <ord>]"
@@ -313,7 +314,17 @@ if [ "${1:-}" = "update" ]; then
   cd "$FORGE_ROOT"
   git pull
   echo "✓ Forge er opdateret"
+  echo ""
+  echo "  Tip: kør 'forge project upgrade' i dit projekt for at opdatere"
+  echo "       hooks, commands og CLAUDE.md til nyeste version."
   exit 0
+fi
+
+if [ "${1:-}" = "project" ] && [ "${2:-}" = "upgrade" ]; then
+  source "$FORGE_ROOT/lib/_common.sh"
+  source "$FORGE_ROOT/lib/18-project-upgrade.sh"
+  run_project_upgrade
+  exit $?
 fi
 
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
