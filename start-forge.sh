@@ -72,7 +72,7 @@ run_doctor() {
     local cv; cv=$(composer --version --no-ansi 2>/dev/null | awk '{print $3}')
     _dr_ok "composer" "($cv)"
   else
-    _dr_fail "composer" "(ikke fundet)"
+    _dr_fail "composer" "(ikke fundet — installer med: curl -sS https://getcomposer.org/installer | php -- --install-dir=\$HOME/.local/bin --filename=composer)"
   fi
 
   # git
