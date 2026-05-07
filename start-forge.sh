@@ -52,6 +52,7 @@ run_doctor() {
   _dr_ok()   { printf "  ✓  %-26s %s\n" "$1" "$2"; ok=$((ok+1)); }
   _dr_warn() { printf "  ⚠  %-26s %s\n" "$1" "$2"; warn=$((warn+1)); }
   _dr_fail() { printf "  ✗  %-26s %s\n" "$1" "$2"; fail=$((fail+1)); }
+  _dr_info() { printf "  ℹ  %-26s %s\n" "$1" "$2"; }
 
   # ── Systemmiljø ──────────────────────────────────────────────────────────
   echo "  Systemmiljø"
@@ -196,8 +197,14 @@ print(('ok' if 'context7' in srv else 'missing'),
   # CLAUDE.md
   [ -f "CLAUDE.md" ] && _dr_ok "CLAUDE.md" "til stede" || _dr_fail "CLAUDE.md" "mangler"
 
-  # DESIGN.md
-  [ -f "DESIGN.md" ] && _dr_ok "DESIGN.md" "til stede" || _dr_warn "DESIGN.md" "mangler — kør 'forge design refresh'"
+  # DESIGN.md (valgfrit — kun advarsel hvis CLAUDE.md refererer til den)
+  if [ -f "DESIGN.md" ]; then
+    _dr_ok "DESIGN.md" "til stede"
+  elif grep -q "DESIGN.md" "CLAUDE.md" 2>/dev/null; then
+    _dr_warn "DESIGN.md" "mangler men refereret i CLAUDE.md — kør 'forge design refresh'"
+  else
+    _dr_info "DESIGN.md" "ikke valgt — kør 'forge design refresh' for at tilføje"
+  fi
 
   # .env
   [ -f ".env" ] && _dr_ok ".env" "til stede" || _dr_warn ".env" "mangler — kopier fra .env.example"
