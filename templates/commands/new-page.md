@@ -1,31 +1,39 @@
 # /project:new-page
 
-Create a new page following the project's MVC structure.
+Opret en ny side i Forge-projektet.
 
-Page name: $ARGUMENTS
+## Brug
+
+/project:new-page <NAVN>
+
+Eksempel: `/project:new-page about`
 
 ## Steps
 
-1. Create app/controllers/{Name}Controller.php
-   - Single public method: handle(array $params): void
-   - Validate input, call service if needed, pass data to view
-   - Always check authentication if page is protected
+1. Bestem sidenavn fra $ARGUMENTS — brug lowercase, erstat mellemrum med bindestreg
+2. Opret `src/views/<NAVN>.php`:
 
-2. Create app/views/{name}.php
-   - Follow DESIGN.md — correct section backgrounds, typography, components
-   - Include CSRF meta tag if page has any forms:
-     <meta name="csrf-token" content="<?= $_SESSION['csrf_token'] ?>">
-   - Mobile-first layout
+```php
+<?php
+// <NAVN> view
+$title = '<NAVN>';
+?>
+<?php require __DIR__ . '/../includes/header.php'; ?>
 
-3. Registrér route i app/routes.php (ALDRIG i public/index.php)
+<main class="container">
+  <h1><?= htmlspecialchars($title) ?></h1>
 
-**Special case — forside/startside (route `/`):**
-- View skal hedde `app/views/index.php` — routeren loader den automatisk uden at du registrerer en route
-- Opret IKKE en ekstra case '' i switch — det håndteres allerede af bootstrap
-- Controller placeres som normalt: app/controllers/HomeController.php (eller tilsvarende)
+  <!-- TODO: <NAVN> page content -->
 
-4. Spawn frontend-reviewer on the new view file only
-5. Fix any findings before marking done
-6. **Update PROJECT.md** — add row to "Sider og routes" table with:
-   - Route, view path, controller class, auth requirement, 1-sentence description
-   - Update "Sidst opdateret" date at bottom
+</main>
+
+<?php require __DIR__ . '/../includes/footer.php'; ?>
+```
+
+3. Print routing-linjen brugeren skal tilføje i sin router:
+
+```php
+'<NAVN>' => 'src/views/<NAVN>.php',
+```
+
+4. Informer brugeren om at tilføje routing-linjen til router-filen (typisk `src/router.php` eller `index.php`).

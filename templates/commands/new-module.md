@@ -1,35 +1,31 @@
 # /project:new-module
 
-Scaffold a complete feature module from scratch.
+Opret et nyt modul (partial/komponent) i Forge-projektet.
 
-Module name: $ARGUMENTS
+## Brug
+
+/project:new-module <NAVN>
+
+Eksempel: `/project:new-module user-card`
 
 ## Steps
 
-1. Plan: list all pages, routes, DB tables, and service methods needed.
-   Output the plan and wait — do not proceed until confirmed.
+1. Bestem modulnavn fra $ARGUMENTS — brug lowercase, erstat mellemrum med bindestreg
+2. Opret `src/views/<NAVN>.php`:
 
-2. Schema: add new tables to database/schema.sql with indexes and FK constraints.
-   Run /project:db-init after.
+```php
+<?php
+// <NAVN> module
+// Inkluder med: require __DIR__ . '/<NAVN>.php';
+?>
 
-3. Model: create app/models/{Name}.php
-   - Static methods only: find(), findAll(), create(), update(), delete()
-   - PDO prepared statements exclusively
-   - WAL + FK already enabled by Database::connect()
+<div class="<NAVN>">
+  <!-- TODO: <NAVN> module content -->
+</div>
+```
 
-4. Service: create app/services/{Name}Service.php
-   - Business logic only — no SQL, no HTTP output
-   - Stateless: no session or global state
-   - External API calls: retry 3x, log to api_logs, throw typed exceptions
+3. Print include-linjen brugeren kan bruge i andre views:
 
-5. Controllers + Views: run /project:new-page for each page in the module
-
-6. Run full /project:review across all new files
-7. Fix all findings before marking module complete
-8. **Update PROJECT.md comprehensively:**
-   - Add module summary to "Hvad systemet gør" section
-   - Add every new route to "Sider og routes"
-   - Add every new table to "Databaseskema" with columns
-   - Add every external API to "Eksterne integrationer"
-   - Note key architecture decisions in "Arkitekturbeslutninger"
-   - Update "Sidst opdateret" date
+```php
+require __DIR__ . '/<NAVN>.php';
+```
