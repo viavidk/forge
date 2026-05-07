@@ -33,3 +33,15 @@ out=$(bash "$FORGE_ROOT/start-forge.sh" doctor 2>&1 || true)
 echo "$out" | grep -q "forge doctor" || { echo "FAIL T3: 'forge doctor' missing header"; exit 1; }
 echo "$out" | grep -qE "ok|fejl|advarsler" || { echo "FAIL T3: no summary line"; exit 1; }
 echo "PASS T3: forge doctor runs and prints checklist"
+
+# T4: stop.sh creates sessions/DRAFT.md when sessions/ dir exists
+TMP=$(mktemp -d)
+mkdir -p "$TMP/sessions" "$TMP/.git"
+# minimal git setup
+(cd "$TMP" && git init -q && git commit --allow-empty -m "init" -q)
+cp "$FORGE_ROOT/templates/hooks/stop.sh" "$TMP/stop.sh"
+(cd "$TMP" && bash stop.sh 2>/dev/null || true)
+[ -f "$TMP/sessions/DRAFT.md" ] || { echo "FAIL T4: sessions/DRAFT.md not created"; rm -rf "$TMP"; exit 1; }
+grep -q "Session Draft" "$TMP/sessions/DRAFT.md" || { echo "FAIL T4: DRAFT.md missing header"; rm -rf "$TMP"; exit 1; }
+rm -rf "$TMP"
+echo "PASS T4: stop.sh creates sessions/DRAFT.md"
