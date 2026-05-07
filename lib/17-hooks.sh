@@ -70,7 +70,7 @@ if not already:
 # ── SessionStart → session-start.sh ─────────────────────────────────────────
 ss = hooks.setdefault("SessionStart", [])
 ss_cmd = {"type": "command", "command": "bash .claude/hooks/session-start.sh"}
-ss_entry = {"matcher": "startup|clear|compact", "hooks": [ss_cmd]}
+ss_entry = {"hooks": [ss_cmd]}
 already_ss = any(
     any("session-start.sh" in hk.get("command", "") for hk in entry.get("hooks", []))
     for entry in ss
