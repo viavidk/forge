@@ -49,9 +49,12 @@ run_doctor() {
   echo "  forge doctor"
   echo "  ─────────────────────────────────────────"
 
-  _dr_ok()   { printf "  ✓  %-22s %s\n" "$1" "$2"; ok=$((ok+1)); }
-  _dr_warn() { printf "  ⚠  %-22s %s\n" "$1" "$2"; warn=$((warn+1)); }
-  _dr_fail() { printf "  ✗  %-22s %s\n" "$1" "$2"; fail=$((fail+1)); }
+  _dr_ok()   { printf "  ✓  %-26s %s\n" "$1" "$2"; ok=$((ok+1)); }
+  _dr_warn() { printf "  ⚠  %-26s %s\n" "$1" "$2"; warn=$((warn+1)); }
+  _dr_fail() { printf "  ✗  %-26s %s\n" "$1" "$2"; fail=$((fail+1)); }
+
+  # ── Systemmiljø ──────────────────────────────────────────────────────────
+  echo "  Systemmiljø"
 
   # PHP 8.1+
   if command -v php &>/dev/null; then
@@ -86,6 +89,22 @@ run_doctor() {
   # sqlite3
   command -v sqlite3 &>/dev/null && _dr_ok "sqlite3" "tilgængelig" || _dr_fail "sqlite3" "(ikke fundet)"
 
+  # node / npx (kræves af Context7 og Chrome DevTools MCP)
+  if command -v node &>/dev/null; then
+    local nv; nv=$(node --version 2>/dev/null)
+    _dr_ok "node / npx" "($nv)"
+  else
+    _dr_warn "node / npx" "(ikke fundet — kræves af Context7 + Chrome DevTools MCP)"
+  fi
+
+  # cloudflared (valgfrit — kræves af Tunnel)
+  if command -v cloudflared &>/dev/null; then
+    local clv; clv=$(cloudflared --version 2>/dev/null | awk '{print $3}')
+    _dr_ok "cloudflared" "($clv)"
+  else
+    _dr_warn "cloudflared" "(ikke fundet — kræves kun ved Cloudflare Tunnel)"
+  fi
+
   # Project-specific checks only if in a Forge project
   if [ ! -f "CLAUDE.md" ] && [ ! -f ".claude/settings.json" ]; then
     echo "  ─────────────────────────────────────────"
@@ -96,33 +115,89 @@ run_doctor() {
     [ "$fail" -eq 0 ] && return 0 || return 1
   fi
 
-  # Hooks
-  local hok=0
-  for h in post-write.sh pre-bash.sh stop.sh; do
-    [ -x ".claude/hooks/$h" ] && hok=$((hok+1))
+  # ── Projekt ───────────────────────────────────────────────────────────────
+  echo "  Projekt"
+
+  # Hooks (4 forventet: post-write, pre-bash, stop, session-start)
+  local hok=0 hmissing=()
+  for h in post-write.sh pre-bash.sh stop.sh session-start.sh; do
+    if [ -f ".claude/hooks/$h" ]; then
+      hok=$((hok+1))
+    else
+      hmissing+=("$h")
+    fi
   done
-  if   [ "$hok" -eq 3 ]; then _dr_ok  "Hooks" "post-write · pre-bash · stop"
-  elif [ "$hok" -gt 0 ]; then _dr_warn "Hooks" "$hok/3 til stede"
-  else                         _dr_fail "Hooks" "alle mangler"
+  if [ "$hok" -eq 4 ]; then
+    _dr_ok "Hooks (4/4)" "post-write · pre-bash · stop · session-start"
+  elif [ "$hok" -eq 3 ] && [[ " ${hmissing[*]} " == *" session-start.sh "* ]]; then
+    _dr_warn "Hooks (3/4)" "session-start mangler — kør 'forge update' for at opgradere til v3.7.0"
+  elif [ "$hok" -gt 0 ]; then
+    _dr_warn "Hooks ($hok/4)" "mangler: ${hmissing[*]}"
+  else
+    _dr_fail "Hooks" "alle mangler — kør 'forge update' i projektmappen"
   fi
 
-  # settings.json format
+  # settings.json + Superpowers
   if [ -f ".claude/settings.json" ]; then
-    if python3 -c "
+    local sp_status
+    sp_status=$(python3 -c "
 import json,sys
 d=json.load(open('.claude/settings.json'))
-sys.exit(0 if isinstance(d.get('enabledPlugins',{}),dict) else 1)
-" 2>/dev/null; then
-      _dr_ok "settings.json" "record-format ✓"
+ep=d.get('enabledPlugins',{})
+fmt_ok=isinstance(ep,dict)
+sp=any('superpowers' in k for k in ep)
+print('fmt_ok=' + str(fmt_ok))
+print('superpowers=' + str(sp))
+" 2>/dev/null || echo "fmt_ok=False")
+    if echo "$sp_status" | grep -q "fmt_ok=False"; then
+      _dr_fail "settings.json" "array-format — fix: åbn 'claude .' og bed Claude rette det"
     else
-      _dr_fail "settings.json" "array-format (fix: åbn 'claude .' → Fix with Claude)"
+      _dr_ok "settings.json" "record-format ✓"
+      if echo "$sp_status" | grep -q "superpowers=True"; then
+        _dr_ok "Superpowers" "aktiveret ✓"
+      else
+        _dr_warn "Superpowers" "ikke aktiveret — kør 'forge' og vælg Superpowers"
+      fi
     fi
   else
     _dr_warn "settings.json" "mangler"
   fi
 
+  # Agents
+  if [ -d ".claude/agents" ]; then
+    local agent_count; agent_count=$(ls ".claude/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$agent_count" -gt 0 ]; then
+      _dr_ok "Agents" "($agent_count installeret)"
+    else
+      _dr_warn "Agents" "ingen — kør 'forge agents update'"
+    fi
+  else
+    _dr_warn "Agents" "ingen — kør 'forge agents update'"
+  fi
+
+  # MCP-servere
+  if [ -f ".mcp.json" ]; then
+    local mcp_context7 mcp_chrome mcp_viavi
+    read -r mcp_context7 mcp_chrome mcp_viavi < <(python3 -c "
+import json
+d=json.load(open('.mcp.json'))
+srv=d.get('mcpServers',{})
+print(('ok' if 'context7' in srv else 'missing'),
+      ('ok' if 'chrome-devtools' in srv else 'missing'),
+      ('ok' if 'viavi-forge' in srv else 'missing'))
+" 2>/dev/null || echo "missing missing missing")
+    [ "$mcp_context7" = "ok" ] && _dr_ok "MCP: Context7" "konfigureret ✓" || _dr_warn "MCP: Context7" "ikke i .mcp.json"
+    [ "$mcp_chrome"   = "ok" ] && _dr_ok "MCP: Chrome DevTools" "konfigureret ✓" || _dr_warn "MCP: Chrome DevTools" "ikke i .mcp.json"
+    [ "$mcp_viavi"    = "ok" ] && _dr_ok "MCP: ViaVi Skills" "konfigureret ✓" || _dr_warn "MCP: ViaVi Skills" "ikke i .mcp.json"
+  else
+    _dr_warn "MCP (.mcp.json)" "mangler — ingen MCP-servere konfigureret"
+  fi
+
   # CLAUDE.md
   [ -f "CLAUDE.md" ] && _dr_ok "CLAUDE.md" "til stede" || _dr_fail "CLAUDE.md" "mangler"
+
+  # DESIGN.md
+  [ -f "DESIGN.md" ] && _dr_ok "DESIGN.md" "til stede" || _dr_warn "DESIGN.md" "mangler — kør 'forge design refresh'"
 
   # .env
   [ -f ".env" ] && _dr_ok ".env" "til stede" || _dr_warn ".env" "mangler — kopier fra .env.example"
