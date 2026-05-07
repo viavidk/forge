@@ -91,7 +91,7 @@ run_doctor() {
     echo "  ─────────────────────────────────────────"
     echo "  (Kør fra et Forge-projektmappe for projekt-checks)"
     echo ""
-    printf "  %d ok · 0 advarsler · %d fejl\n" "$ok" "$fail"
+    printf "  %d ok · %d advarsler · %d fejl\n" "$ok" "$warn" "$fail"
     echo ""
     [ "$fail" -eq 0 ] && return 0 || return 1
   fi
@@ -173,6 +173,11 @@ if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
   exit 0
 fi
 
+if [ "${1:-}" = "doctor" ]; then
+  run_doctor
+  exit $?
+fi
+
 # Sæt mode fra flag hvis givet
 if [ "${1:-}" = "--guided" ]; then
   FORCE_MODE="guided"
@@ -196,11 +201,6 @@ done
 # ---------------------------------------------------------------------------
 if [ "${1:-}" = "agents" ]; then
   forge_agents_command "${2:-}" "${3:-}"
-  exit $?
-fi
-
-if [ "${1:-}" = "doctor" ]; then
-  run_doctor
   exit $?
 fi
 
