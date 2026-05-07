@@ -45,3 +45,22 @@ cp "$FORGE_ROOT/templates/hooks/stop.sh" "$TMP/stop.sh"
 grep -q "Session Draft" "$TMP/sessions/DRAFT.md" || { echo "FAIL T4: DRAFT.md missing header"; rm -rf "$TMP"; exit 1; }
 rm -rf "$TMP"
 echo "PASS T4: stop.sh creates sessions/DRAFT.md"
+
+# T5: session-start.sh exists and is executable after install
+[ -f "$FORGE_ROOT/templates/hooks/session-start.sh" ] || { echo "FAIL T5: session-start.sh template missing"; exit 1; }
+# T5: 17-hooks.sh installs SessionStart in settings.json
+TMP=$(mktemp -d)
+mkdir -p "$TMP/.claude/hooks"
+source "$FORGE_ROOT/lib/_common.sh"
+source "$FORGE_ROOT/lib/17-hooks.sh"
+PROJECT="$TMP" install_hooks 2>/dev/null
+python3 -c "
+import json, sys
+d = json.load(open('$TMP/.claude/settings.json'))
+ss = d.get('hooks', {}).get('SessionStart', [])
+cmds = [h.get('command','') for e in ss for h in e.get('hooks',[])]
+has = any('session-start' in c for c in cmds)
+sys.exit(0 if has else 1)
+" || { echo "FAIL T5: SessionStart hook not registered in settings.json"; rm -rf "$TMP"; exit 1; }
+rm -rf "$TMP"
+echo "PASS T5: session-start.sh template + registered in settings.json"
