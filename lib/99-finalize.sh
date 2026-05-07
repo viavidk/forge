@@ -842,6 +842,15 @@ finalize_project() {
   # CLAUDE.local.md
   generate_claude_local_md
 
+  # Session audit directory
+  mkdir -p "$PROJECT/sessions"
+  # Add sessions/ to .gitignore if not present
+  if [ -f "$PROJECT/.gitignore" ]; then
+    grep -q "^sessions/$" "$PROJECT/.gitignore" || echo "sessions/" >> "$PROJECT/.gitignore"
+  else
+    echo "sessions/" > "$PROJECT/.gitignore"
+  fi
+
   # Initial git commit
   if [ "$UPGRADE" = "false" ]; then
     start_spinner "Initialiserer git..."

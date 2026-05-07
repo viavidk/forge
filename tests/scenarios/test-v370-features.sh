@@ -64,3 +64,22 @@ sys.exit(0 if has else 1)
 " || { echo "FAIL T5: SessionStart hook not registered in settings.json"; rm -rf "$TMP"; exit 1; }
 rm -rf "$TMP"
 echo "PASS T5: session-start.sh template + registered in settings.json"
+
+# T6: session-end.md command template exists
+[ -f "$FORGE_ROOT/templates/commands/session-end.md" ] || { echo "FAIL T6: session-end.md missing"; exit 1; }
+grep -q "session-end" "$FORGE_ROOT/templates/commands/session-end.md" || { echo "FAIL T6: session-end.md wrong content"; exit 1; }
+
+# T6: 99-finalize creates sessions/ dir and .gitignore entry
+TMP=$(mktemp -d)
+(cd "$TMP" && git init -q && git commit --allow-empty -m "init" -q)
+mkdir -p "$TMP/.claude"
+source "$FORGE_ROOT/lib/_common.sh"
+PROJECT="$TMP" INSTALL_SUPERPOWERS="N" INSTALL_AGENTS="none" \
+  USE_TUNNEL="N" USE_VIAVI_SKILLS="N" USE_CONTEXT7="N" USE_CHROME_DEVTOOLS="N" \
+  USE_TAILWIND="N" USE_ACETERNITY="N" DESIGN_SOURCE="skip" PROJECT_PROFILE="web-app" \
+  FORGE_MODE="quick" PORT="8080" USE_ROUTER="Y" SUBPATH="" REWRITEBASE="" \
+  bash -c "source '$FORGE_ROOT/lib/99-finalize.sh' 2>/dev/null; finalize_project" 2>/dev/null || true
+[ -d "$TMP/sessions" ] || { echo "FAIL T6: sessions/ dir not created by finalize"; rm -rf "$TMP"; exit 1; }
+grep -q "sessions/" "$TMP/.gitignore" 2>/dev/null || { echo "FAIL T6: sessions/ not in .gitignore"; rm -rf "$TMP"; exit 1; }
+rm -rf "$TMP"
+echo "PASS T6: session-end command + scaffold creates sessions/ + .gitignore"
