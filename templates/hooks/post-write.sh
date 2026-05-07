@@ -47,6 +47,23 @@ if [ -z "$CONTEXT" ]; then
 
 fi
 
+# ── 4. Composer test suite ────────────────────────────────────────────────────
+if [ -z "$CONTEXT" ] && echo "$FILE" | grep -qE '^src/.*\.php$'; then
+  if [ -f "composer.json" ] && python3 -c "
+import json,sys
+d=json.load(open('composer.json'))
+sys.exit(0 if d.get('scripts',{}).get('test') is not None else 1)
+" 2>/dev/null; then
+    TEST_OUT=$(composer test --no-interaction 2>&1)
+    TEST_EXIT=$?
+    if [ "$TEST_EXIT" -ne 0 ]; then
+      CONTEXT="TEST FEJL efter ændring af $(basename "$FILE"):
+$TEST_OUT
+Ret fejlene inden du fortsætter."
+    fi
+  fi
+fi
+
 # ── Output til Claude ─────────────────────────────────────────────────────────
 if [ -n "$CONTEXT" ]; then
   python3 -c "

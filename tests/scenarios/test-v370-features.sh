@@ -83,3 +83,17 @@ PROJECT="$TMP" INSTALL_SUPERPOWERS="N" INSTALL_AGENTS="none" \
 grep -q "sessions/" "$TMP/.gitignore" 2>/dev/null || { echo "FAIL T6: sessions/ not in .gitignore"; rm -rf "$TMP"; exit 1; }
 rm -rf "$TMP"
 echo "PASS T6: session-end command + scaffold creates sessions/ + .gitignore"
+
+# T7: post-write.sh contains composer test check
+grep -q "composer test" "$FORGE_ROOT/templates/hooks/post-write.sh" || \
+  { echo "FAIL T7: post-write.sh missing composer test runner"; exit 1; }
+grep -q 'scripts.*test\|scripts.test' "$FORGE_ROOT/templates/hooks/post-write.sh" || \
+  { echo "FAIL T7: post-write.sh doesn't check for composer test script"; exit 1; }
+echo "PASS T7: post-write.sh has composer test runner"
+
+# T8: new-page.md and new-module.md exist with correct content
+[ -f "$FORGE_ROOT/templates/commands/new-page.md" ] || { echo "FAIL T8: new-page.md missing"; exit 1; }
+[ -f "$FORGE_ROOT/templates/commands/new-module.md" ] || { echo "FAIL T8: new-module.md missing"; exit 1; }
+grep -q "src/views" "$FORGE_ROOT/templates/commands/new-page.md" || { echo "FAIL T8: new-page.md missing views path"; exit 1; }
+grep -q "src/views" "$FORGE_ROOT/templates/commands/new-module.md" || { echo "FAIL T8: new-module.md missing views path"; exit 1; }
+echo "PASS T8: new-page.md and new-module.md templates exist"
