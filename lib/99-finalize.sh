@@ -206,9 +206,9 @@ _whp_hooks_section() {
     <div style="background:linear-gradient(135deg,rgba(52,211,153,.08),rgba(52,211,153,.02));border:1px solid rgba(52,211,153,.3);border-radius:12px;padding:20px 24px;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start">
       <div style="font-size:20px;margin-top:2px">⚡</div>
       <div>
-        <div style="font-weight:600;color:var(--tp);margin-bottom:4px">PHP-validering i realtid</div>
-        <div style="font-size:13px;color:var(--ts);line-height:1.65">Hvert .php-fil syntaks-tjekkes straks efter gem. Fejlen sendes direkte til Claude som context &mdash; Claude retter den <em>inden du ser det næste svar</em>.</div>
-        <div style="margin-top:8px;font-family:'Geist Mono',monospace;font-size:11px;color:#34D399">PostToolUse: Write|Edit &rarr; php -l &rarr; additionalContext til Claude</div>
+        <div style="font-weight:600;color:var(--tp);margin-bottom:4px">PHP-validering + test runner i realtid</div>
+        <div style="font-size:13px;color:var(--ts);line-height:1.65">Hvert .php-fil syntaks-tjekkes straks efter gem. Har projektet <span style="font-family:'Geist Mono',monospace;font-size:12px">composer test</span>, k&oslash;res det ogs&aring; &mdash; fejlende tests sendes som context til Claude <em>inden du ser n&aelig;ste svar</em>.</div>
+        <div style="margin-top:8px;font-family:'Geist Mono',monospace;font-size:11px;color:#34D399">PostToolUse: Write|Edit &rarr; php -l + composer test &rarr; additionalContext</div>
       </div>
     </div>
 
@@ -227,6 +227,15 @@ _whp_hooks_section() {
         <div style="font-weight:600;color:var(--tp);margin-bottom:4px">Commit-gate</div>
         <div style="font-size:13px;color:var(--ts);line-height:1.65">Staged PHP-filer valideres f&oslash;r <span class="mono">git commit</span> k&oslash;rer. Syntaksfejl blokerer commit'et automatisk og Claude ser blokeringsgrunden &mdash; den retter og fors&oslash;ger igen.</div>
         <div style="margin-top:8px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--accent2)">PreToolUse: git commit &rarr; php -l staged &rarr; deny hvis fejl</div>
+      </div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,rgba(124,106,240,.08),rgba(124,106,240,.02));border:1px solid rgba(124,106,240,.3);border-radius:12px;padding:20px 24px;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start">
+      <div style="font-size:20px;margin-top:2px">🔁</div>
+      <div>
+        <div style="font-weight:600;color:var(--tp);margin-bottom:4px">Session-audit og kontekst-genoptagelse</div>
+        <div style="font-size:13px;color:var(--ts);line-height:1.65">N&aring;r sessionen slutter skrives <span style="font-family:'Geist Mono',monospace;font-size:12px">sessions/DRAFT.md</span> med git-data. N&aelig;ste gang du &aring;bner projektet l&aelig;ser session-start hook DRAFT.md og injicerer konteksten &mdash; Claude husker hvad der skete sidst uden du beh&oslash;ver genforklare.</div>
+        <div style="margin-top:8px;font-family:'Geist Mono',monospace;font-size:11px;color:var(--brand)">Stop &rarr; sessions/DRAFT.md &nbsp;&middot;&nbsp; SessionStart &rarr; additionalContext</div>
       </div>
     </div>
 
@@ -556,7 +565,31 @@ $(_whp_superpowers_section)
             <span class="cmd-name" style="color:#a78bfa">forge agents <span class="cmd-arg">[list|search|update]</span></span>
             <button class="cbtn" onclick="copyLine(this,'forge agents list')">Kopiér</button>
           </div>
-          <div class="cmd-desc">CLI-kommando: list kategorier, søg efter en specifik agent (fx <span class="mono">forge agents search nextjs</span>) eller opdater cache.</div>
+          <div class="cmd-desc">CLI: <span class="mono">list</span> viser cache-dato og antal agents, <span class="mono">search &lt;ord&gt;</span> s&oslash;ger, <span class="mono">update</span> opdaterer og viser diff (tilf&oslash;jede/fjernede).</div>
+        </div>
+
+        <div class="cmd-row" style="border-color:rgba(52,211,153,.3);background:linear-gradient(135deg,rgba(52,211,153,.06),rgba(56,189,248,.03))">
+          <div class="cmd-top">
+            <span class="cmd-name" style="color:#34d399">forge doctor</span>
+            <button class="cbtn" onclick="copyLine(this,'forge doctor')">Kopiér</button>
+          </div>
+          <div class="cmd-desc">Helbredstjek: PHP 8.1+, composer, git, sqlite3, hooks, settings.json, CLAUDE.md, .env og database. ✓/⚠/✗ per check &mdash; exit code 1 ved fejl (CI-kompatibel).</div>
+        </div>
+
+        <div class="cmd-row" style="border-color:rgba(56,189,248,.3);background:linear-gradient(135deg,rgba(56,189,248,.06),rgba(124,106,240,.03))">
+          <div class="cmd-top">
+            <span class="cmd-name" style="color:var(--accent2)">forge design refresh</span>
+            <button class="cbtn" onclick="copyLine(this,'forge design refresh')">Kopiér</button>
+          </div>
+          <div class="cmd-desc">Genafvikler DESIGN.md-valget i eksisterende projekt. V&aelig;lg nyt design system og bekr&aelig;ft &mdash; DESIGN.md overskrives og Claude bruger det nye system fra n&aelig;ste prompt.</div>
+        </div>
+
+        <div class="cmd-row">
+          <div class="cmd-top">
+            <span class="cmd-name">/project:session-end</span>
+            <button class="cbtn" onclick="copyLine(this,'/project:session-end')">Kopiér</button>
+          </div>
+          <div class="cmd-desc">Claude skriver narrativ opsummering af sessionen, gemmer som <span class="mono">sessions/YYYY-MM-DD-HHMMSS.md</span> og sletter DRAFT.md. Kan tilf&oslash;je en personlig note.</div>
         </div>
 
       </div>
@@ -841,6 +874,22 @@ finalize_project() {
 
   # CLAUDE.local.md
   generate_claude_local_md
+
+  # Session audit directory
+  mkdir -p "$PROJECT/sessions"
+  # Add sessions/ to .gitignore if not present
+  if [ -f "$PROJECT/.gitignore" ]; then
+    grep -q "^sessions/$" "$PROJECT/.gitignore" || echo "sessions/" >> "$PROJECT/.gitignore"
+  else
+    echo "sessions/" > "$PROJECT/.gitignore"
+  fi
+
+  # .env.example
+  if [ -f "$FORGE_ROOT/templates/partials/.env.example" ]; then
+    cp "$FORGE_ROOT/templates/partials/.env.example" "$PROJECT/.env.example"
+    # Add .env to .gitignore if not present
+    grep -q "^\.env$" "$PROJECT/.gitignore" 2>/dev/null || echo ".env" >> "$PROJECT/.gitignore"
+  fi
 
   # Initial git commit
   if [ "$UPGRADE" = "false" ]; then

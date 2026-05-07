@@ -14,6 +14,7 @@ install_commands() {
     new-module
     setup-python
     sanity-check
+    session-end
   )
 
   for cmd in "${commands[@]}"; do

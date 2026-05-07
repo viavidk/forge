@@ -3,7 +3,7 @@
 # Modulær projektgenerator for PHP/SQLite + Claude Code
 set -euo pipefail
 
-FORGE_VERSION="3.6.6"
+FORGE_VERSION="3.7.0"
 export FORGE_VERSION
 
 # ---------------------------------------------------------------------------
@@ -13,6 +13,129 @@ _self=$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || realpath "${BASH_SOURCE[0
 FORGE_ROOT="$(cd "$(dirname "$_self")" && pwd)"
 unset _self
 export FORGE_ROOT
+
+# ---------------------------------------------------------------------------
+# Auto-update check (max once per day, non-blocking)
+# ---------------------------------------------------------------------------
+FORGE_UPDATE_AVAILABLE=""
+export FORGE_UPDATE_AVAILABLE
+
+check_for_update() {
+  local check_file="${FORGE_ROOT}/.update-checked"
+  local today; today=$(date +%Y-%m-%d)
+  [ -f "$check_file" ] && [ "$(cat "$check_file")" = "$today" ] && return 0
+  echo "$today" > "$check_file"
+  local local_ver; local_ver=$(get_local_version)
+  local remote_ver
+  remote_ver=$(curl -fsSL --max-time 3 \
+    "https://raw.githubusercontent.com/viavidk/forge/main/VERSION" 2>/dev/null \
+    | tr -d '[:space:]' || echo "")
+  [ -n "$remote_ver" ] && [ "$remote_ver" != "$local_ver" ] && \
+    FORGE_UPDATE_AVAILABLE="$remote_ver" && export FORGE_UPDATE_AVAILABLE
+}
+
+print_update_notice() {
+  [ -n "${FORGE_UPDATE_AVAILABLE:-}" ] || return 0
+  echo ""
+  echo "  ℹ  Forge v${FORGE_UPDATE_AVAILABLE} tilgængelig — kør 'forge update'"
+}
+
+# ---------------------------------------------------------------------------
+# forge doctor — miljø- og projektsundhedstjek
+# ---------------------------------------------------------------------------
+run_doctor() {
+  local ok=0 warn=0 fail=0
+  echo ""
+  echo "  forge doctor"
+  echo "  ─────────────────────────────────────────"
+
+  _dr_ok()   { printf "  ✓  %-22s %s\n" "$1" "$2"; ok=$((ok+1)); }
+  _dr_warn() { printf "  ⚠  %-22s %s\n" "$1" "$2"; warn=$((warn+1)); }
+  _dr_fail() { printf "  ✗  %-22s %s\n" "$1" "$2"; fail=$((fail+1)); }
+
+  # PHP 8.1+
+  if command -v php &>/dev/null; then
+    local pv; pv=$(php -r 'echo PHP_VERSION;' 2>/dev/null)
+    local pm; pm=$(echo "$pv" | cut -d. -f1)
+    local pn; pn=$(echo "$pv" | cut -d. -f2)
+    if [ "${pm:-0}" -gt 8 ] || { [ "${pm:-0}" -eq 8 ] && [ "${pn:-0}" -ge 1 ]; }; then
+      _dr_ok "PHP 8.1+" "($pv)"
+    else
+      _dr_fail "PHP 8.1+" "(fundet $pv — kræver 8.1+)"
+    fi
+  else
+    _dr_fail "PHP 8.1+" "(ikke fundet)"
+  fi
+
+  # composer
+  if command -v composer &>/dev/null; then
+    local cv; cv=$(composer --version --no-ansi 2>/dev/null | awk '{print $3}')
+    _dr_ok "composer" "($cv)"
+  else
+    _dr_fail "composer" "(ikke fundet)"
+  fi
+
+  # git
+  if command -v git &>/dev/null; then
+    local gv; gv=$(git --version 2>/dev/null | awk '{print $3}')
+    _dr_ok "git" "($gv)"
+  else
+    _dr_fail "git" "(ikke fundet)"
+  fi
+
+  # sqlite3
+  command -v sqlite3 &>/dev/null && _dr_ok "sqlite3" "tilgængelig" || _dr_fail "sqlite3" "(ikke fundet)"
+
+  # Project-specific checks only if in a Forge project
+  if [ ! -f "CLAUDE.md" ] && [ ! -f ".claude/settings.json" ]; then
+    echo "  ─────────────────────────────────────────"
+    echo "  (Kør fra et Forge-projektmappe for projekt-checks)"
+    echo ""
+    printf "  %d ok · %d advarsler · %d fejl\n" "$ok" "$warn" "$fail"
+    echo ""
+    [ "$fail" -eq 0 ] && return 0 || return 1
+  fi
+
+  # Hooks
+  local hok=0
+  for h in post-write.sh pre-bash.sh stop.sh; do
+    [ -x ".claude/hooks/$h" ] && hok=$((hok+1))
+  done
+  if   [ "$hok" -eq 3 ]; then _dr_ok  "Hooks" "post-write · pre-bash · stop"
+  elif [ "$hok" -gt 0 ]; then _dr_warn "Hooks" "$hok/3 til stede"
+  else                         _dr_fail "Hooks" "alle mangler"
+  fi
+
+  # settings.json format
+  if [ -f ".claude/settings.json" ]; then
+    if python3 -c "
+import json,sys
+d=json.load(open('.claude/settings.json'))
+sys.exit(0 if isinstance(d.get('enabledPlugins',{}),dict) else 1)
+" 2>/dev/null; then
+      _dr_ok "settings.json" "record-format ✓"
+    else
+      _dr_fail "settings.json" "array-format (fix: åbn 'claude .' → Fix with Claude)"
+    fi
+  else
+    _dr_warn "settings.json" "mangler"
+  fi
+
+  # CLAUDE.md
+  [ -f "CLAUDE.md" ] && _dr_ok "CLAUDE.md" "til stede" || _dr_fail "CLAUDE.md" "mangler"
+
+  # .env
+  [ -f ".env" ] && _dr_ok ".env" "til stede" || _dr_warn ".env" "mangler — kopier fra .env.example"
+
+  # SQLite
+  [ -f "database/app.sqlite" ] && _dr_ok "database/app.sqlite" "til stede" || \
+    _dr_warn "database/app.sqlite" "mangler — kør /project:db-init"
+
+  echo "  ─────────────────────────────────────────"
+  printf "  %d ok · %d advarsler · %d fejl\n" "$ok" "$warn" "$fail"
+  echo ""
+  [ "$fail" -eq 0 ] && return 0 || return 1
+}
 
 # ---------------------------------------------------------------------------
 # CLI-flag: update / --help
@@ -26,6 +149,8 @@ show_help() {
   echo "    forge --guided         Guided mode (8 trin)"
   echo "    forge --advanced       Avanceret mode (alle valg)"
   echo "    forge update           Opdatér Forge fra GitHub"
+  echo "    forge doctor           Tjek projekt-miljøets sundhed"
+  echo "    forge design refresh   Opdatér DESIGN.md med ny kilde"
   echo "    forge agents [list|update|search <ord>]"
   echo "                           Håndter awesome-agents cache"
   echo "    forge --help           Vis denne hjælp"
@@ -46,6 +171,32 @@ fi
 if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
   show_help
   exit 0
+fi
+
+if [ "${1:-}" = "doctor" ]; then
+  run_doctor
+  exit $?
+fi
+
+if [ "${1:-}" = "design" ]; then
+  shift
+  case "${1:-}" in
+    refresh)
+      source "$FORGE_ROOT/lib/_common.sh"
+      source "$FORGE_ROOT/lib/06-design-md.sh"
+      PROJECT="${PWD}" export PROJECT
+      design_refresh_standalone
+      ;;
+    *)
+      echo ""
+      echo "  forge design — opdatér DESIGN.md"
+      echo ""
+      echo "  Kommandoer:"
+      echo "    forge design refresh   Vælg ny design-kilde og overskriv DESIGN.md"
+      echo ""
+      ;;
+  esac
+  exit $?
 fi
 
 # Sæt mode fra flag hvis givet
@@ -73,6 +224,8 @@ if [ "${1:-}" = "agents" ]; then
   forge_agents_command "${2:-}" "${3:-}"
   exit $?
 fi
+
+check_for_update
 
 # ---------------------------------------------------------------------------
 # Initialisér tilstand
@@ -205,3 +358,4 @@ install_rules
 install_skills
 finalize_project
 print_summary
+print_update_notice

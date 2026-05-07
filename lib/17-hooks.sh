@@ -18,7 +18,7 @@ install_hooks() {
   mkdir -p "$hooks_dir"
 
   # Kopiér hook-scripts fra templates
-  for hook in post-write.sh pre-bash.sh stop.sh; do
+  for hook in post-write.sh pre-bash.sh stop.sh session-start.sh; do
     if [ -f "$FORGE_ROOT/templates/hooks/$hook" ]; then
       cp "$FORGE_ROOT/templates/hooks/$hook" "$hooks_dir/$hook"
       chmod +x "$hooks_dir/$hook"
@@ -66,6 +66,17 @@ already = any(
 )
 if not already:
     stop.append(stop_entry)
+
+# ── SessionStart → session-start.sh ─────────────────────────────────────────
+ss = hooks.setdefault("SessionStart", [])
+ss_cmd = {"type": "command", "command": "bash .claude/hooks/session-start.sh"}
+ss_entry = {"matcher": "startup|clear|compact", "hooks": [ss_cmd]}
+already_ss = any(
+    any("session-start.sh" in hk.get("command", "") for hk in entry.get("hooks", []))
+    for entry in ss
+)
+if not already_ss:
+    ss.append(ss_entry)
 
 with open(path, "w") as f:
     json.dump(data, f, indent=2)

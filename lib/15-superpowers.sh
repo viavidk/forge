@@ -65,12 +65,11 @@ install_superpowers() {
   local marketplace_url="https://github.com/obra/superpowers-marketplace"
 
   # Brug python3 til at merge ind i eksisterende settings.json (eller skabe ny).
-  # Korrekt Claude Code-format: enabledPlugins[] + extraKnownMarketplaces[].
-  python3 - "$settings" "$marketplace_url" <<'PYEOF'
+  # Korrekt Claude Code-format: enabledPlugins og extraKnownMarketplaces er records (objekter).
+  python3 - "$settings" <<'PYEOF'
 import json, os, sys
 
 path = sys.argv[1]
-url  = sys.argv[2]
 
 if os.path.exists(path):
     try:
@@ -81,13 +80,23 @@ if os.path.exists(path):
 else:
     data = {}
 
-plugins = data.setdefault("enabledPlugins", [])
-if "superpowers" not in plugins:
-    plugins.append("superpowers")
+# Migrer array → record hvis gammelt format
+if isinstance(data.get("enabledPlugins"), list):
+    data["enabledPlugins"] = {p: True for p in data["enabledPlugins"]}
+if isinstance(data.get("extraKnownMarketplaces"), list):
+    del data["extraKnownMarketplaces"]
 
-mps = data.setdefault("extraKnownMarketplaces", [])
-if not any(m.get("url") == url for m in mps if isinstance(m, dict)):
-    mps.append({"url": url})
+plugins = data.setdefault("enabledPlugins", {})
+plugins["superpowers@claude-plugins-official"] = True
+
+mps = data.setdefault("extraKnownMarketplaces", {})
+if "superpowers-marketplace" not in mps:
+    mps["superpowers-marketplace"] = {
+        "source": {
+            "source": "github",
+            "repo": "obra/superpowers-marketplace"
+        }
+    }
 
 with open(path, "w") as f:
     json.dump(data, f, indent=2)

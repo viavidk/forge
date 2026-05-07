@@ -9,7 +9,11 @@ YELLOW=$(tput setaf 3 2>/dev/null || printf '')
 CYAN=$(tput setaf 6 2>/dev/null || printf '')
 RED=$(tput setaf 1 2>/dev/null || printf '')
 
-FORGE_VERSION="${FORGE_VERSION:-3.6.4}"
+get_local_version() {
+  local ver_file="${FORGE_ROOT}/VERSION"
+  [ -f "$ver_file" ] && tr -d '[:space:]' < "$ver_file" || echo "unknown"
+}
+FORGE_VERSION="${FORGE_VERSION:-$(get_local_version)}"
 
 _spinner_pid=""
 
