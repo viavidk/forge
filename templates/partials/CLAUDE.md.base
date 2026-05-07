@@ -211,6 +211,12 @@ start.sh              — lokal udviklingsserver
 
 ---
 
+## Environment
+Kopier `.env.example` → `.env` og udfyld værdier inden du starter serveren.
+`.env` er i `.gitignore` og må aldrig committes.
+
+---
+
 ## Self-improvement triggers
 
 | Trigger                                    | Action                                                      |

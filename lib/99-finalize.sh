@@ -851,6 +851,13 @@ finalize_project() {
     echo "sessions/" > "$PROJECT/.gitignore"
   fi
 
+  # .env.example
+  if [ -f "$FORGE_ROOT/templates/partials/.env.example" ]; then
+    cp "$FORGE_ROOT/templates/partials/.env.example" "$PROJECT/.env.example"
+    # Add .env to .gitignore if not present
+    grep -q "^\.env$" "$PROJECT/.gitignore" 2>/dev/null || echo ".env" >> "$PROJECT/.gitignore"
+  fi
+
   # Initial git commit
   if [ "$UPGRADE" = "false" ]; then
     start_spinner "Initialiserer git..."

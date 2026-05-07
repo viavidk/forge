@@ -104,3 +104,11 @@ echo "PASS T8: new-page.md and new-module.md templates exist"
 out=$(bash "$FORGE_ROOT/start-forge.sh" design 2>&1 || true)
 echo "$out" | grep -qi "design refresh\|forge design" || { echo "FAIL T9: 'forge design' shows no help"; exit 1; }
 echo "PASS T9: forge design subcommand dispatches"
+
+# T10: .env.example template exists with required vars
+[ -f "$FORGE_ROOT/templates/partials/.env.example" ] || { echo "FAIL T10: .env.example template missing"; exit 1; }
+for var in APP_NAME APP_ENV APP_DEBUG DB_PATH SESSION_SECRET; do
+  grep -q "$var" "$FORGE_ROOT/templates/partials/.env.example" || \
+    { echo "FAIL T10: .env.example missing $var"; exit 1; }
+done
+echo "PASS T10: .env.example template has required variables"
