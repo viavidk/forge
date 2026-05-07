@@ -54,7 +54,7 @@ Do NOT use arbitrary values like \`bg-[#635bff]\` — use \`bg-ds-accent\` inste
 TOKENEOF
   fi
 
-  # MCP-reference hvis ViaVi Skills er aktiv
+  # MCP-reference + Workspace + Agent Mesh hvis ViaVi Skills er aktiv
   if [ "$USE_VIAVI_SKILLS" = "Y" ]; then
     cat >> "$PROJECT/CLAUDE.md" << 'MCPMD'
 
@@ -63,6 +63,28 @@ TOKENEOF
 Dette projekt bruger ViaVi Skills via `.mcp.json`.
 Skills hentes automatisk ved opstart af Claude Code.
 MCPMD
+
+    # Workspace + Mesh med projekt-specifike værdier (variabel-interpolation)
+    cat >> "$PROJECT/CLAUDE.md" << MCPWS
+
+## Workspace
+
+workspace: ${PROJECT}-workspace
+agent_id: claude-${PROJECT}
+
+Skriv status til workspacet ved start og afslutning af opgaver:
+\`workspace_write(workspace="${PROJECT}-workspace", key="status", value="...", agent_id="claude-${PROJECT}")\`
+
+## Agent Mesh
+
+mesh_agent: claude-${PROJECT}
+
+Ved starten af hver ny session: kald \`mesh_inbox(agent_id="claude-${PROJECT}")\` og læs eventuelle beskeder.
+Svar på ulæste mesh-beskeder inden du fortsætter med andet arbejde.
+Send svar med \`mesh_send(from_agent="claude-${PROJECT}", to_agent="...", subject="...", body="...")\`
+
+Se CLAUDE.md afsnit "ViaVi Workspaces og Agent Mesh" for fuld dokumentation og navnekonventioner.
+MCPWS
   fi
 
   # v3.6.3: Orkestrering (kun hvis Superpowers og/eller awesome-agents er valgt)
