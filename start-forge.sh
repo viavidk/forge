@@ -45,17 +45,28 @@ print_update_notice() {
 # ---------------------------------------------------------------------------
 run_doctor() {
   local ok=0 warn=0 fail=0
-  echo ""
-  echo "  forge doctor"
-  echo "  ─────────────────────────────────────────"
 
-  _dr_ok()   { printf "  ✓  %-26s %s\n" "$1" "$2"; ok=$((ok+1)); }
-  _dr_warn() { printf "  ⚠  %-26s %s\n" "$1" "$2"; warn=$((warn+1)); }
-  _dr_fail() { printf "  ✗  %-26s %s\n" "$1" "$2"; fail=$((fail+1)); }
-  _dr_info() { printf "  ℹ  %-26s %s\n" "$1" "$2"; }
+  # ── Header ───────────────────────────────────────────────────────────────
+  echo ""
+  printf "  ${CYAN}${BOLD}███████╗ ██████╗ ██████╗  ██████╗ ███████╗${RESET}\n"
+  printf "  ${CYAN}${BOLD}██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝${RESET}\n"
+  printf "  ${CYAN}${BOLD}█████╗  ██║   ██║██████╔╝██║  ███╗█████╗  ${RESET}\n"
+  printf "  ${CYAN}${BOLD}██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝  ${RESET}\n"
+  printf "  ${CYAN}${BOLD}██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗${RESET}\n"
+  printf "  ${CYAN}${BOLD}╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝${RESET}\n"
+  echo ""
+  printf "  ${MAGENTA}${BOLD}ViaVi${RESET}${DIM} ──────────────────────────────────────${RESET}  ${BOLD}doctor  ${DIM}v${FORGE_VERSION}${RESET}\n"
+  echo ""
+
+  # ── Helpers ──────────────────────────────────────────────────────────────
+  _dr_ok()   { printf "  ${GREEN}✓${RESET}  ${BOLD}%-27s${RESET}${DIM}%s${RESET}\n" "$1" "$2"; ok=$((ok+1)); }
+  _dr_warn() { printf "  ${YELLOW}⚠${RESET}  ${BOLD}%-27s${RESET}%s\n" "$1" "$2"; warn=$((warn+1)); }
+  _dr_fail() { printf "  ${RED}✗${RESET}  ${BOLD}%-27s${RESET}${RED}%s${RESET}\n" "$1" "$2"; fail=$((fail+1)); }
+  _dr_info() { printf "  ${CYAN}ℹ${RESET}  ${DIM}%-27s%s${RESET}\n" "$1" "$2"; }
 
   # ── Systemmiljø ──────────────────────────────────────────────────────────
-  echo "  Systemmiljø"
+  printf "  ${WHITE}${BOLD}Systemmiljø${RESET}\n"
+  printf "  ${DIM}──────────────────────────────────────────────────${RESET}\n"
 
   # PHP 8.1+
   if command -v php &>/dev/null; then
@@ -108,16 +119,19 @@ run_doctor() {
 
   # Project-specific checks only if in a Forge project
   if [ ! -f "CLAUDE.md" ] && [ ! -f ".claude/settings.json" ]; then
-    echo "  ─────────────────────────────────────────"
-    echo "  (Kør fra et Forge-projektmappe for projekt-checks)"
     echo ""
-    printf "  %d ok · %d advarsler · %d fejl\n" "$ok" "$warn" "$fail"
+    printf "  ${DIM}──────────────────────────────────────────────────${RESET}\n"
+    printf "  ${DIM}Kør fra en Forge-projektmappe for projekt-checks${RESET}\n"
     echo ""
+    _dr_summary "$ok" "$warn" "$fail"
     [ "$fail" -eq 0 ] && return 0 || return 1
   fi
 
   # ── Projekt ───────────────────────────────────────────────────────────────
-  echo "  Projekt"
+  echo ""
+  local pname; pname=$(basename "${PWD}")
+  printf "  ${WHITE}${BOLD}Projekt${RESET}  ${DIM}— %s${RESET}\n" "$pname"
+  printf "  ${DIM}──────────────────────────────────────────────────${RESET}\n"
 
   # Hooks (4 forventet: post-write, pre-bash, stop, session-start)
   local hok=0 hmissing=()
@@ -279,10 +293,22 @@ else:
   [ -f "database/app.sqlite" ] && _dr_ok "database/app.sqlite" "til stede" || \
     _dr_warn "database/app.sqlite" "mangler — kør /project:db-init"
 
-  echo "  ─────────────────────────────────────────"
-  printf "  %d ok · %d advarsler · %d fejl\n" "$ok" "$warn" "$fail"
   echo ""
+  _dr_summary "$ok" "$warn" "$fail"
   [ "$fail" -eq 0 ] && return 0 || return 1
+}
+
+_dr_summary() {
+  local ok=$1 warn=$2 fail=$3
+  printf "  ${DIM}══════════════════════════════════════════════════${RESET}\n"
+  if [ "$fail" -eq 0 ] && [ "$warn" -eq 0 ]; then
+    printf "  ${GREEN}${BOLD}✦  Alle systemer OK${RESET}  ${DIM}·  %d ok${RESET}\n" "$ok"
+  elif [ "$fail" -eq 0 ]; then
+    printf "  ${GREEN}${BOLD}%d ok${RESET}  ${DIM}·${RESET}  ${YELLOW}${BOLD}%d advarsel(er)${RESET}  ${DIM}·  0 fejl${RESET}\n" "$ok" "$warn"
+  else
+    printf "  ${GREEN}%d ok${RESET}  ${DIM}·${RESET}  ${YELLOW}%d advarsel(er)${RESET}  ${DIM}·${RESET}  ${RED}${BOLD}%d fejl${RESET}\n" "$ok" "$warn" "$fail"
+  fi
+  echo ""
 }
 
 # ---------------------------------------------------------------------------
@@ -333,6 +359,7 @@ if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
 fi
 
 if [ "${1:-}" = "doctor" ]; then
+  source "$FORGE_ROOT/lib/_common.sh"
   run_doctor
   exit $?
 fi
