@@ -41,6 +41,103 @@ print_update_notice() {
 }
 
 # ---------------------------------------------------------------------------
+# forge doctor — miljø- og projektsundhedstjek
+# ---------------------------------------------------------------------------
+run_doctor() {
+  local ok=0 warn=0 fail=0
+  echo ""
+  echo "  forge doctor"
+  echo "  ─────────────────────────────────────────"
+
+  _dr_ok()   { printf "  ✓  %-22s %s\n" "$1" "$2"; ok=$((ok+1)); }
+  _dr_warn() { printf "  ⚠  %-22s %s\n" "$1" "$2"; warn=$((warn+1)); }
+  _dr_fail() { printf "  ✗  %-22s %s\n" "$1" "$2"; fail=$((fail+1)); }
+
+  # PHP 8.1+
+  if command -v php &>/dev/null; then
+    local pv; pv=$(php -r 'echo PHP_VERSION;' 2>/dev/null)
+    local pm; pm=$(echo "$pv" | cut -d. -f1)
+    local pn; pn=$(echo "$pv" | cut -d. -f2)
+    if [ "${pm:-0}" -gt 8 ] || { [ "${pm:-0}" -eq 8 ] && [ "${pn:-0}" -ge 1 ]; }; then
+      _dr_ok "PHP 8.1+" "($pv)"
+    else
+      _dr_fail "PHP 8.1+" "(fundet $pv — kræver 8.1+)"
+    fi
+  else
+    _dr_fail "PHP 8.1+" "(ikke fundet)"
+  fi
+
+  # composer
+  if command -v composer &>/dev/null; then
+    local cv; cv=$(composer --version --no-ansi 2>/dev/null | awk '{print $3}')
+    _dr_ok "composer" "($cv)"
+  else
+    _dr_fail "composer" "(ikke fundet)"
+  fi
+
+  # git
+  if command -v git &>/dev/null; then
+    local gv; gv=$(git --version 2>/dev/null | awk '{print $3}')
+    _dr_ok "git" "($gv)"
+  else
+    _dr_fail "git" "(ikke fundet)"
+  fi
+
+  # sqlite3
+  command -v sqlite3 &>/dev/null && _dr_ok "sqlite3" "tilgængelig" || _dr_fail "sqlite3" "(ikke fundet)"
+
+  # Project-specific checks only if in a Forge project
+  if [ ! -f "CLAUDE.md" ] && [ ! -f ".claude/settings.json" ]; then
+    echo "  ─────────────────────────────────────────"
+    echo "  (Kør fra et Forge-projektmappe for projekt-checks)"
+    echo ""
+    printf "  %d ok · 0 advarsler · %d fejl\n" "$ok" "$fail"
+    echo ""
+    [ "$fail" -eq 0 ] && return 0 || return 1
+  fi
+
+  # Hooks
+  local hok=0
+  for h in post-write.sh pre-bash.sh stop.sh; do
+    [ -x ".claude/hooks/$h" ] && hok=$((hok+1))
+  done
+  if   [ "$hok" -eq 3 ]; then _dr_ok  "Hooks" "post-write · pre-bash · stop"
+  elif [ "$hok" -gt 0 ]; then _dr_warn "Hooks" "$hok/3 til stede"
+  else                         _dr_fail "Hooks" "alle mangler"
+  fi
+
+  # settings.json format
+  if [ -f ".claude/settings.json" ]; then
+    if python3 -c "
+import json,sys
+d=json.load(open('.claude/settings.json'))
+sys.exit(0 if isinstance(d.get('enabledPlugins',{}),dict) else 1)
+" 2>/dev/null; then
+      _dr_ok "settings.json" "record-format ✓"
+    else
+      _dr_fail "settings.json" "array-format (fix: åbn 'claude .' → Fix with Claude)"
+    fi
+  else
+    _dr_warn "settings.json" "mangler"
+  fi
+
+  # CLAUDE.md
+  [ -f "CLAUDE.md" ] && _dr_ok "CLAUDE.md" "til stede" || _dr_fail "CLAUDE.md" "mangler"
+
+  # .env
+  [ -f ".env" ] && _dr_ok ".env" "til stede" || _dr_warn ".env" "mangler — kopier fra .env.example"
+
+  # SQLite
+  [ -f "database/app.sqlite" ] && _dr_ok "database/app.sqlite" "til stede" || \
+    _dr_warn "database/app.sqlite" "mangler — kør /project:db-init"
+
+  echo "  ─────────────────────────────────────────"
+  printf "  %d ok · %d advarsler · %d fejl\n" "$ok" "$warn" "$fail"
+  echo ""
+  [ "$fail" -eq 0 ] && return 0 || return 1
+}
+
+# ---------------------------------------------------------------------------
 # CLI-flag: update / --help
 # ---------------------------------------------------------------------------
 show_help() {
@@ -99,6 +196,11 @@ done
 # ---------------------------------------------------------------------------
 if [ "${1:-}" = "agents" ]; then
   forge_agents_command "${2:-}" "${3:-}"
+  exit $?
+fi
+
+if [ "${1:-}" = "doctor" ]; then
+  run_doctor
   exit $?
 fi
 

@@ -27,3 +27,9 @@ check_for_update_test
 [ -f "$FORGE_ROOT/.update-checked" ] || { echo "FAIL T2: .update-checked not written"; exit 1; }
 [ "${FORGE_UPDATE_AVAILABLE:-}" = "99.0.0" ] || { echo "FAIL T2: FORGE_UPDATE_AVAILABLE not set"; exit 1; }
 echo "PASS T2: check_for_update writes marker + sets FORGE_UPDATE_AVAILABLE"
+
+# T3: forge doctor subcommand exists and prints checklist header
+out=$(bash "$FORGE_ROOT/start-forge.sh" doctor 2>&1 || true)
+echo "$out" | grep -q "forge doctor" || { echo "FAIL T3: 'forge doctor' missing header"; exit 1; }
+echo "$out" | grep -qE "ok|fejl|advarsler" || { echo "FAIL T3: no summary line"; exit 1; }
+echo "PASS T3: forge doctor runs and prints checklist"
