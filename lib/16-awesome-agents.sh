@@ -9,12 +9,30 @@ AGENTS_CACHE="${AGENTS_CACHE:-$HOME/.local/share/forge/awesome-claude-code-subag
 AGENTS_REPO="${AGENTS_REPO:-https://github.com/VoltAgent/awesome-claude-code-subagents.git}"
 AGENTS_CACHE_TTL_DAYS=7
 
+_write_agents_cache_meta() {
+  python3 - "$AGENTS_CACHE" <<'PYEOF'
+import json, os, sys, datetime
+cache = sys.argv[1]
+meta = os.path.join(cache, 'agents-cache-meta.json')
+names = sorted(
+    os.path.splitext(f)[0]
+    for root, dirs, files in os.walk(os.path.join(cache, 'categories'))
+    for f in files
+    if f.endswith('.md') and f != 'README.md'
+)
+with open(meta, 'w') as fh:
+    json.dump({'updated': datetime.date.today().isoformat(), 'agents': names, 'count': len(names)}, fh, indent=2)
+PYEOF
+}
+
 ensure_agents_cache() {
   if [ ! -d "$AGENTS_CACHE/.git" ]; then
     start_spinner "Henter agent-bibliotek (første gang)..."
     mkdir -p "$(dirname "$AGENTS_CACHE")"
     if git clone --depth 1 --quiet "$AGENTS_REPO" "$AGENTS_CACHE" 2>/dev/null; then
       stop_spinner "Agent-bibliotek hentet"
+      # Write cache metadata
+      _write_agents_cache_meta
     else
       stop_spinner_err "Kunne ikke hente agent-bibliotek (offline?)"
       return 1
@@ -28,6 +46,8 @@ ensure_agents_cache() {
     if (cd "$AGENTS_CACHE" && git pull --quiet --depth 1 origin HEAD 2>/dev/null); then
       touch "$AGENTS_CACHE"
       stop_spinner "Agent-bibliotek opdateret"
+      # Write cache metadata
+      _write_agents_cache_meta
     else
       stop_spinner_err "Kunne ikke opdatere — bruger eksisterende cache"
     fi
@@ -156,6 +176,14 @@ forge_agents_command() {
       ;;
     list)
       ensure_agents_cache || return 1
+      META="$AGENTS_CACHE/agents-cache-meta.json"
+      if [ -f "$META" ]; then
+        local updated; updated=$(python3 -c "import json; print(json.load(open('$META')).get('updated','?'))" 2>/dev/null || echo "?")
+        local count; count=$(python3 -c "import json; print(json.load(open('$META')).get('count','?'))" 2>/dev/null || echo "?")
+        echo ""
+        echo "  Agent-cache: opdateret ${updated} · ${count} agents"
+        echo "  (kør 'forge agents update' for at hente seneste)"
+      fi
       echo ""
       echo "  Tilgængelige kategorier:"
       for dir in "$AGENTS_CACHE/categories"/*/; do
@@ -174,10 +202,35 @@ forge_agents_command() {
       if [ ! -d "$AGENTS_CACHE/.git" ]; then
         ensure_agents_cache
       else
+        OLD_AGENTS=()
+        META="$AGENTS_CACHE/agents-cache-meta.json"
+        if [ -f "$META" ]; then
+          mapfile -t OLD_AGENTS < <(python3 -c "
+import json
+for a in json.load(open('$META')).get('agents', []):
+    print(a)
+" 2>/dev/null)
+        fi
         start_spinner "Opdaterer agent-bibliotek..."
         if (cd "$AGENTS_CACHE" && git pull --quiet --depth 1 origin HEAD 2>/dev/null); then
           touch "$AGENTS_CACHE"
           stop_spinner "Agent-bibliotek opdateret"
+          # Write updated metadata
+          _write_agents_cache_meta
+          if [ ${#OLD_AGENTS[@]} -gt 0 ]; then
+            NEW_AGENTS=()
+            mapfile -t NEW_AGENTS < <(python3 -c "
+import json
+for a in json.load(open('$META')).get('agents', []):
+    print(a)
+" 2>/dev/null)
+            ADDED=($(comm -13 <(printf '%s\n' "${OLD_AGENTS[@]}" | sort) <(printf '%s\n' "${NEW_AGENTS[@]}" | sort)))
+            REMOVED=($(comm -23 <(printf '%s\n' "${OLD_AGENTS[@]}" | sort) <(printf '%s\n' "${NEW_AGENTS[@]}" | sort)))
+            UNCHANGED=$(( ${#NEW_AGENTS[@]} - ${#ADDED[@]} ))
+            for a in "${ADDED[@]}";   do echo "  + $a (ny)"; done
+            for r in "${REMOVED[@]}"; do echo "  - $r (fjernet)"; done
+            echo "  = ${UNCHANGED} uændrede"
+          fi
         else
           stop_spinner_err "Kunne ikke opdatere"
           return 1
