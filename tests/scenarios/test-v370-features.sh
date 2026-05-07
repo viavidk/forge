@@ -99,3 +99,8 @@ echo "PASS T7: post-write.sh has composer test runner"
 grep -q "src/views" "$FORGE_ROOT/templates/commands/new-page.md" || { echo "FAIL T8: new-page.md missing views path"; exit 1; }
 grep -q "src/views" "$FORGE_ROOT/templates/commands/new-module.md" || { echo "FAIL T8: new-module.md missing views path"; exit 1; }
 echo "PASS T8: new-page.md and new-module.md templates exist"
+
+# T9: forge design refresh subcommand exists
+out=$(bash "$FORGE_ROOT/start-forge.sh" design 2>&1 || true)
+echo "$out" | grep -qi "design refresh\|forge design" || { echo "FAIL T9: 'forge design' shows no help"; exit 1; }
+echo "PASS T9: forge design subcommand dispatches"

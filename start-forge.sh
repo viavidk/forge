@@ -178,6 +178,27 @@ if [ "${1:-}" = "doctor" ]; then
   exit $?
 fi
 
+if [ "${1:-}" = "design" ]; then
+  shift
+  case "${1:-}" in
+    refresh)
+      source "$FORGE_ROOT/lib/_common.sh"
+      source "$FORGE_ROOT/lib/06-design-md.sh"
+      PROJECT="${PWD}" export PROJECT
+      design_refresh_standalone
+      ;;
+    *)
+      echo ""
+      echo "  forge design — opdatér DESIGN.md"
+      echo ""
+      echo "  Kommandoer:"
+      echo "    forge design refresh   Vælg ny design-kilde og overskriv DESIGN.md"
+      echo ""
+      ;;
+  esac
+  exit $?
+fi
+
 # Sæt mode fra flag hvis givet
 if [ "${1:-}" = "--guided" ]; then
   FORCE_MODE="guided"

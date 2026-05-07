@@ -188,3 +188,19 @@ install_design_md() {
     stop_spinner "aceternity-patterns.md tilføjet til DESIGN.md"
   fi
 }
+
+# Standalone entrypoint for 'forge design refresh'
+design_refresh_standalone() {
+  if [ ! -f "DESIGN.md" ]; then
+    echo "  ✗  Ingen DESIGN.md fundet. Kør 'forge' fra et scaffoldet projekt."
+    return 1
+  fi
+  printf "  Dette overskriver eksisterende DESIGN.md. Fortsæt? [y/N] "
+  read _confirm
+  [ "${_confirm:-N}" = "y" ] || [ "${_confirm:-N}" = "Y" ] || { echo "  Afbrudt."; return 0; }
+  PROJECT="${PROJECT:-$PWD}"
+  export PROJECT
+  prompt_design_source
+  install_design_md
+  echo "  ✓  DESIGN.md opdateret."
+}
