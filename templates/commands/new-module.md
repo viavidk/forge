@@ -11,12 +11,12 @@ Eksempel: `/project:new-module user-card`
 ## Steps
 
 1. Bestem modulnavn fra $ARGUMENTS — brug lowercase, erstat mellemrum med bindestreg
-2. Opret `src/views/<NAVN>.php`:
+2. Opret `app/views/partials/<NAVN>.php`:
 
 ```php
 <?php
 // <NAVN> module
-// Inkluder med: require __DIR__ . '/<NAVN>.php';
+// Inkluder med: require __DIR__ . '/partials/<NAVN>.php';
 ?>
 
 <div class="<NAVN>">
@@ -27,5 +27,7 @@ Eksempel: `/project:new-module user-card`
 3. Print include-linjen brugeren kan bruge i andre views:
 
 ```php
-require __DIR__ . '/<NAVN>.php';
+require __DIR__ . '/partials/<NAVN>.php';
 ```
+
+4. Informer brugeren at partials placeres i `app/views/partials/` og inkluderes fra views med `require __DIR__ . '/partials/<NAVN>.php'`.

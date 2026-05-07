@@ -11,14 +11,14 @@ Eksempel: `/project:new-page about`
 ## Steps
 
 1. Bestem sidenavn fra $ARGUMENTS — brug lowercase, erstat mellemrum med bindestreg
-2. Opret `src/views/<NAVN>.php`:
+2. Opret `app/views/<NAVN>.php`:
 
 ```php
 <?php
 // <NAVN> view
 $title = '<NAVN>';
 ?>
-<?php require __DIR__ . '/../includes/header.php'; ?>
+<?php require __DIR__ . '/partials/header.php'; ?>
 
 <main class="container">
   <h1><?= htmlspecialchars($title) ?></h1>
@@ -27,13 +27,13 @@ $title = '<NAVN>';
 
 </main>
 
-<?php require __DIR__ . '/../includes/footer.php'; ?>
+<?php require __DIR__ . '/partials/footer.php'; ?>
 ```
 
 3. Print routing-linjen brugeren skal tilføje i sin router:
 
 ```php
-'<NAVN>' => 'src/views/<NAVN>.php',
+'<NAVN>' => 'app/views/<NAVN>.php',
 ```
 
-4. Informer brugeren om at tilføje routing-linjen til router-filen (typisk `src/router.php` eller `index.php`).
+4. Informer brugeren om at tilføje routing-linjen til router-filen (typisk `app/routes.php` eller `index.php`).

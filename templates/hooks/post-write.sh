@@ -48,7 +48,7 @@ if [ -z "$CONTEXT" ]; then
 fi
 
 # ── 4. Composer test suite ────────────────────────────────────────────────────
-if [ -z "$CONTEXT" ] && echo "$FILE" | grep -qE '^src/.*\.php$'; then
+if [ -z "$CONTEXT" ] && echo "$FILE" | grep -qE '/app/.*\.php$'; then
   if [ -f "composer.json" ] && python3 -c "
 import json,sys
 d=json.load(open('composer.json'))
