@@ -106,57 +106,64 @@ prompt_viavi_token() {
 }
 
 generate_mcp_config() {
-  local has_servers=false
-  local servers="{}"
+  [ "${USE_VIAVI_SKILLS:-N}" = "N" ] && \
+  [ "${USE_CONTEXT7:-N}" = "N" ] && \
+  [ "${USE_CHROME_DEVTOOLS:-N}" = "N" ] && return
 
-  # Byg JSON
-  local json='{'
-  local first=true
+  python3 - "$PROJECT" \
+    "${USE_VIAVI_SKILLS:-N}" "${USE_CONTEXT7:-N}" "${USE_CHROME_DEVTOOLS:-N}" \
+    "${VIAVI_TOKEN:-}" << 'PYEOF'
+import json, sys, os
 
-  if [ "$USE_VIAVI_SKILLS" = "Y" ]; then
-    [ "$first" = "true" ] || json+=","
-    json+='"viavi-skills":{"url":"https://app.viavi.dk/skills/mcp","transport":"http","headers":{"Authorization":"Bearer ${VIAVI_TOKEN}"}}'
-    first=false
-    has_servers=true
+project, use_viavi, use_ctx7, use_chrome, token = sys.argv[1:6]
+
+servers = {}
+
+if use_viavi == "Y":
+    servers["viavi-skills"] = {
+        "url": "https://app.viavi.dk/skills/mcp",
+        "transport": "http",
+        "headers": {"Authorization": f"Bearer {token}"}
+    }
+
+if use_ctx7 == "Y":
+    servers["context7"] = {
+        "command": "npx",
+        "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+
+if use_chrome == "Y":
+    servers["chrome-devtools"] = {
+        "command": "npx",
+        "args": ["-y", "chrome-devtools-mcp@latest"]
+    }
+
+if not servers:
+    sys.exit(0)
+
+data = {"mcpServers": servers}
+
+# .mcp.json — med rigtigt token
+with open(os.path.join(project, ".mcp.json"), "w") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+
+# .mcp.json.example — token erstattet med placeholder
+import copy
+example = copy.deepcopy(data)
+if "viavi-skills" in example["mcpServers"]:
+    example["mcpServers"]["viavi-skills"]["headers"]["Authorization"] = \
+        "Bearer YOUR_VIAVI_TOKEN_HERE"
+
+with open(os.path.join(project, ".mcp.json.example"), "w") as f:
+    json.dump(example, f, indent=2)
+    f.write("\n")
+PYEOF
+
+  # Tilføj .mcp.json til .gitignore (ikke .example)
+  if ! grep -q "^\.mcp\.json$" "$PROJECT/.gitignore" 2>/dev/null; then
+    echo ".mcp.json" >> "$PROJECT/.gitignore"
   fi
 
-  if [ "$USE_CONTEXT7" = "Y" ]; then
-    [ "$first" = "true" ] || json+=","
-    json+='"context7":{"command":"npx","args":["-y","@upstash/context7-mcp@latest"]}'
-    first=false
-    has_servers=true
-  fi
-
-  if [ "$USE_CHROME_DEVTOOLS" = "Y" ]; then
-    [ "$first" = "true" ] || json+=","
-    json+='"chrome-devtools":{"command":"npx","args":["-y","chrome-devtools-mcp@latest"]}'
-    first=false
-    has_servers=true
-  fi
-
-  json+='}'
-
-  if [ "$has_servers" = "true" ]; then
-    # .mcp.json med token interpoleret
-    cat > "$PROJECT/.mcp.json" << MCPEOF
-{
-  "mcpServers": ${json}
-}
-MCPEOF
-
-    # .mcp.json.example uden token
-    local json_example="${json/\$\{VIAVI_TOKEN\}/YOUR_VIAVI_TOKEN_HERE}"
-    cat > "$PROJECT/.mcp.json.example" << MCPEXEOF
-{
-  "mcpServers": ${json_example}
-}
-MCPEXEOF
-
-    # Tilføj .mcp.json til .gitignore (ikke .example)
-    if ! grep -q "^\.mcp\.json$" "$PROJECT/.gitignore" 2>/dev/null; then
-      echo ".mcp.json" >> "$PROJECT/.gitignore"
-    fi
-
-    echo "  ✓  .mcp.json genereret"
-  fi
+  echo "  ✓  .mcp.json genereret"
 }
